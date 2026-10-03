@@ -5,6 +5,7 @@ import os
 import re
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -18,9 +19,10 @@ TIMEOUT = float(os.getenv("ALPHAVANTAGE_TIMEOUT_SECONDS", "15"))
 CACHE_TTL = int(os.getenv("SIGNALDESK_CACHE_TTL_SECONDS", "60"))
 SYMBOL_RE = re.compile(r"^[A-Z0-9.:-]{1,15}$")
 DEMO_SYMBOL = "IBM"
+BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI(title="ASET SignalDesk Live", version="1.0.0")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 cache: dict[str, tuple[float, dict[str, Any]]] = {}
 lock = asyncio.Lock()
 
@@ -244,7 +246,7 @@ async def build_research(symbol: str, entitlement: str | None) -> dict[str, Any]
 
 @app.get("/")
 async def home() -> FileResponse:
-    return FileResponse("static/index.html")
+    return FileResponse(BASE_DIR / "static" / "index.html")
 
 
 @app.get("/health")
