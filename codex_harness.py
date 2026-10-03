@@ -42,7 +42,7 @@ Project Context:
 {context}
 
 Provide a clear technical plan, file structure, and implementation steps.
-""""
+"""
 
     def simulate_response(self, task_description: str, project_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
