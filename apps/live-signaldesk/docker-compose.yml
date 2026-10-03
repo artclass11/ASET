@@ -1,0 +1,15 @@
+services:
+  signaldesk:
+    build: .
+    container_name: aset-signaldesk
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
