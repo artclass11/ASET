@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASET SignalDesk Live</title>
+<meta name="description" content="Live financial research dashboard backed by Alpha Vantage.">
+<style>
+:root{color-scheme:dark;--bg:#050505;--panel:#0d0d0f;--line:#252529;--text:#f7f7f8;--muted:#96969d;--soft:#c9c9cd}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% -5%,#19191b 0,#050505 36%);color:var(--text);font:14px/1.55 Inter,system-ui,-apple-system,sans-serif}
+main{max-width:1180px;margin:auto;padding:26px 18px 70px}.top{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:55px}.logo{font-weight:850;font-size:18px;letter-spacing:-.04em}.status{color:var(--muted);font-size:12px}
+h1{font-size:clamp(44px,8vw,92px);line-height:.92;letter-spacing:-.065em;max-width:900px;margin:12px 0 18px}.lead{font-size:18px;color:var(--soft);max-width:740px}
+.search{display:flex;gap:9px;margin-top:26px;max-width:640px}.search input{flex:1;min-width:0;background:#101012;border:1px solid var(--line);color:#fff;padding:13px 15px;border-radius:12px;font:inherit;text-transform:uppercase;outline:none}.search input:focus{border-color:#555}.btn{border:1px solid var(--line);background:#111113;color:#fff;border-radius:12px;padding:12px 16px;font:inherit;cursor:pointer}.btn.primary{background:#fff;color:#000;border-color:#fff}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:25px}.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:18px}.label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.11em}.value{font-size:25px;font-weight:700;letter-spacing:-.04em;margin-top:6px;overflow-wrap:anywhere}
+.section{margin-top:12px;background:rgba(12,12,14,.92);border:1px solid var(--line);border-radius:20px;padding:19px}.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.sectionHead h2{margin:0;font-size:15px}.small{font-size:12px;color:var(--muted)}
+.quote{display:flex;justify-content:space-between;align-items:flex-end;gap:20px}.company{font-size:16px;font-weight:700}.ticker{color:var(--muted);font-size:12px}.price{font-size:46px;line-height:1;letter-spacing:-.06em;margin-top:8px}.positive{color:#bdecc9}.negative{color:#ffb7b7}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:14px}.table{width:100%;border-collapse:collapse;min-width:620px}.table th,.table td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left}.table th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.table tr:last-child td{border-bottom:0}
+.flags{display:flex;gap:6px;flex-wrap:wrap}.tag{padding:6px 9px;border:1px solid #2d2d31;background:#141416;border-radius:999px;color:#ddd;font-size:12px}.source{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;color:#bdbdc3;white-space:pre-wrap}
+.buy{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}.buy a{color:#fff;text-decoration:none}.error{display:none;border:1px solid #533232;background:#170e0e;color:#ffcbcb;padding:13px 14px;border-radius:13px;margin-top:15px}
+footer{margin-top:38px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.grid{grid-template-columns:1fr}.search{flex-direction:column}.quote{align-items:flex-start;flex-direction:column}.price{font-size:40px}}
+</style>
+</head>
+<body>
+<main>
+<header class="top"><div class="logo">ASET / SignalDesk</div><div class="status">LIVE RESEARCH</div></header>
+<section>
+<div class="label">Original provider data</div>
+<h1>Research with live numbers.</h1>
+<p class="lead">Enter a ticker to retrieve the latest available quote and fundamentals directly from Alpha Vantage. The app shows provider, freshness and fetch time instead of inventing missing values.</p>
+<div class="search">
+<input id="symbol" maxlength="15" value="IBM" aria-label="Ticker symbol">
+<button class="btn primary" id="run">Analyze</button>
+<button class="btn" id="refresh">Refresh</button>
+</div>
+<div id="error" class="error"></div>
+</section>
+<section class="section">
+<div class="sectionHead"><h2>Company</h2><span class="small" id="meta">Waiting for data</span></div>
+<div class="quote">
+<div><div class="company" id="company">—</div><div class="ticker" id="ticker">—</div><div class="price" id="price">—</div></div>
+<div id="quoteChange" class="small">—</div>
+</div>
+</section>
+<section class="grid">
+<div class="card"><div class="label">Revenue</div><div class="value" id="revenue">—</div></div>
+<div class="card"><div class="label">Net income</div><div class="value" id="income">—</div></div>
+<div class="card"><div class="label">Net margin</div><div class="value" id="margin">—</div></div>
+<div class="card"><div class="label">5Y avg income</div><div class="value" id="avg">—</div></div>
+<div class="card"><div class="label">Debt</div><div class="value" id="debt">—</div></div>
+<div class="card"><div class="label">Cash</div><div class="value" id="cash">—</div></div>
+<div class="card"><div class="label">Debt / cash</div><div class="value" id="debtCash">—</div></div>
+<div class="card"><div class="label">Market cap</div><div class="value" id="cap">—</div></div>
+</section>
+<section class="section">
+<div class="sectionHead"><h2>Five-year income history</h2><span class="small">Provider-reported annual values</span></div>
+<div class="tableWrap"><table class="table"><thead><tr><th>Fiscal year</th><th>Revenue</th><th>Net income</th><th>YoY income</th></tr></thead><tbody id="history"></tbody></table></div>
+</section>
+<section class="section">
+<div class="sectionHead"><h2>Research flags</h2><span class="small">Transparent rules, not a recommendation</span></div>
+<div class="flags" id="flags"><span class="small">None yet.</span></div>
+</section>
+<section class="section">
+<div class="sectionHead"><h2>Source & freshness</h2><span class="small">Provenance</span></div>
+<div class="source" id="source">No provider request has been made yet.</div>
+</section>
+<section class="section buy">
+<div><div class="label">Commercial Pro</div><div style="font-size:19px;font-weight:700;margin-top:5px">Need live integrations, reports or deployment?</div><div class="small" style="margin-top:4px">Licensing and implementation support via Instagram.</div></div>
+<div><a class="btn primary" href="https://ig.me/m/amormagics" target="_blank" rel="noopener">Buy / license →</a> <a class="btn" href="https://www.instagram.com/amormagics/" target="_blank" rel="noopener">@amormagics</a></div>
+</section>
+<footer><span>Market data can be delayed or entitlement-dependent. Validate material figures against authoritative filings.</span><span>Not investment advice.</span></footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const money=v=>v==null?"—":new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:2}).format(v);
+const pct=v=>v==null?"—":(v*100).toFixed(1)+"%";
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+function showError(message){$("error").style.display="block";$("error").textContent=message}
+function clearError(){$("error").style.display="none";$("error").textContent=""}
+function render(d){
+ $("company").textContent=d.company+" · "+[d.exchange,d.country].filter(Boolean).join(" · ");
+ $("ticker").textContent=d.symbol+" · "+(d.currency||"");
+ $("price").textContent=d.quote.price==null?"—":money(d.quote.price);
+ $("quoteChange").innerHTML=d.quote.change==null?"—":money(d.quote.change)+' <span class="'+(d.quote.change>=0?"positive":"negative")+'">'+(d.quote.change_percent==null?"—":(d.quote.change_percent*100).toFixed(2)+"%")+"</span>";
+ $("revenue").textContent=money(d.fundamentals.revenue);
+ $("income").textContent=money(d.fundamentals.net_income);
+ $("margin").textContent=pct(d.fundamentals.net_margin);
+ $("avg").textContent=money(d.fundamentals.average_5y_net_income);
+ $("debt").textContent=money(d.fundamentals.debt);
+ $("cash").textContent=money(d.fundamentals.cash);
+ $("debtCash").textContent=d.fundamentals.debt_cash==null?"—":d.fundamentals.debt_cash.toFixed(2)+"x";
+ $("cap").textContent=money(d.fundamentals.market_cap);
+ $("history").innerHTML=d.income_history.length?d.income_history.map((x,i)=>{const p=d.income_history[i+1]?.net_income;const g=x.net_income!=null&&p!=null&&p!==0?x.net_income/p-1:null;return "<tr><td>"+esc(x.fiscal_date)+"</td><td>"+money(x.revenue)+"</td><td>"+money(x.net_income)+"</td><td>"+pct(g)+"</td></tr>"}).join(""):"<tr><td colspan='4'>No annual income history returned.</td></tr>";
+ $("flags").innerHTML=d.flags.length?d.flags.map(x=>"<span class='tag'>"+esc(x)+"</span>").join(""):"<span class='small'>No rule-based flags triggered.</span>";
+ $("source").textContent=d.sources.map(x=>[x.provider,x.function,x.mode,x.freshness,"fetched "+x.fetched_at].join(" · ")).join("\n");
+ $("meta").textContent=d.meta.provider+" · "+d.meta.freshness+" · "+(d.meta.demo_preview?"demo preview":"live API key")+" · "+d.meta.cache;
+}
+async function run(){
+ clearError();
+ const symbol=$("symbol").value.trim().toUpperCase();
+ if(!/^[A-Z0-9.:-]{1,15}$/.test(symbol)){showError("Enter a valid ticker symbol.");return}
+ $("meta").textContent="Fetching original provider data…";
+ try{
+  const res=await fetch("/api/v1/research/"+encodeURIComponent(symbol));
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.detail||"Provider request failed.");
+  render(data);
+ }catch(e){showError(e.message||String(e));$("meta").textContent="Request failed"}
+}
+$("run").onclick=run;$("refresh").onclick=run;$("symbol").addEventListener("keydown",e=>{if(e.key==="Enter")run()});
+run();
+</script>
+</body>
+</html>
