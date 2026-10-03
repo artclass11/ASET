@@ -12,8 +12,7 @@ import csv
 import json
 import math
 from pathlib import Path
-from typing import Any
-
+from typing import Any, cast
 
 REQUIRED = {"ticker", "company", "revenue", "net_income", "market_cap", "debt", "cash"}
 HISTORY = [f"net_income_y{i}" for i in range(1, 6)]
@@ -54,8 +53,7 @@ def analyze(row: dict[str, str]) -> dict[str, Any]:
     debt = num(row.get("debt"))
     cash = num(row.get("cash"))
 
-    historical = [num(row.get(k)) for k in HISTORY]
-    historical = [x for x in historical if x is not None]
+    historical: list[float] = [cast(float, value) for key in HISTORY if (value := num(row.get(key))) is not None]
 
     margin = income / revenue if income is not None and revenue not in (None, 0) else None
     debt_cash = debt / cash if debt is not None and cash not in (None, 0) else None
@@ -73,7 +71,8 @@ def analyze(row: dict[str, str]) -> dict[str, Any]:
         flags.append("high-debt-to-cash")
     if income is not None and income > 0 and earnings_multiple is not None and earnings_multiple > 60:
         flags.append("high-market-cap-to-earnings-proxy")
-    if growth(income, prior) is not None and growth(income, prior) < 0:
+    latest_growth = growth(income, prior)
+    if latest_growth is not None and latest_growth < 0:
         flags.append("latest-vs-prior-net-income-down")
 
     return {
@@ -89,7 +88,7 @@ def analyze(row: dict[str, str]) -> dict[str, Any]:
             "debt_to_cash": debt_cash,
             "market_cap_to_net_income": earnings_multiple,
             "average_net_income": average(historical),
-            "latest_vs_prior_net_income_growth": growth(income, prior),
+            "latest_vs_prior_net_income_growth": latest_growth,
         },
         "flags": flags,
     }
