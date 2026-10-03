@@ -4,16 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import date
 
 from .analytics import annualized_volatility, maximum_drawdown, simple_return
 from .providers import make_fixture_provider
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="stock-research",
-        description="Run deterministic ASET research analytics.",
-    )
+    parser = argparse.ArgumentParser(prog="stock-research", description="Run deterministic ASET research analytics.")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("demo", help="Run the built-in deterministic demo.")
     return parser
@@ -25,7 +23,7 @@ def main() -> int:
 
     if args.command == "demo":
         provider = make_fixture_provider()
-        observations = provider.get_prices("ASET", provider.get_prices("ASET", __import__("datetime").date(2024, 1, 1), __import__("datetime").date(2024, 1, 5))[0].trading_date, __import__("datetime").date(2024, 1, 5))
+        observations = provider.get_prices("ASET", date(2024, 1, 1), date(2024, 1, 5))
         output = {
             "symbol": "ASET",
             "simple_return": simple_return(observations).value,
