@@ -11,6 +11,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .config import Settings
 from .providers import MarketDataProvider, make_fixture_provider
@@ -51,6 +52,7 @@ def create_app(provider: MarketDataProvider | None = None, settings: Settings | 
         allow_methods=["GET"],
         allow_headers=["x-request-id", "content-type"],
     )
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=list(settings.allowed_hosts))
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):
@@ -62,6 +64,12 @@ def create_app(provider: MarketDataProvider | None = None, settings: Settings | 
         request.state.request_id = request_id
         response = await call_next(request)
         response.headers["x-request-id"] = request_id
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Cache-Control"] = "no-store"
+        if settings.environment.lower() == "production":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
 
     @app.exception_handler(RequestValidationError)

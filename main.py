@@ -11,6 +11,7 @@ from datetime import datetime
 import httpx
 import json
 import logging
+import os
 from enum import Enum
 
 # Configure logging
@@ -26,8 +27,8 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[origin for origin in os.getenv("ASET_ALLOWED_ORIGINS", "").split(",") if origin],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -67,7 +68,7 @@ class ProjectResponse(BaseModel):
 class AstraAPIClient:
     """Client for interacting with Astra model API"""
     
-    def __init__(self, api_endpoint: str = None, api_key: str = None):
+    def __init__(self, api_endpoint: Optional[str] = None, api_key: Optional[str] = None):
         """
         Initialize Astra API client
         
@@ -77,12 +78,11 @@ class AstraAPIClient:
         """
         # Support both OpenAI-like and custom endpoints
         self.api_endpoint = api_endpoint or "https://api.openai.com/v1"
-        self.api_key = api_key or "sk-default-key"
-        self.model = "gpt-3.5-turbo"
-        self.headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
+        self.api_key = api_key or os.getenv("ASTRA_API_KEY")
+        self.model = os.getenv("ASTRA_MODEL", "gpt-3.5-turbo")
+        self.headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            self.headers["Authorization"] = f"Bearer {self.api_key}"
     
     async def generate_project_structure(self, project_name: str, 
                                         project_type: str, 

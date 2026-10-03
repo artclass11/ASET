@@ -11,6 +11,7 @@ class Settings:
     app_name: str = "ASET Research API"
     environment: str = "development"
     allowed_origins: tuple[str, ...] = ()
+    allowed_hosts: tuple[str, ...] = ("127.0.0.1", "localhost", "testserver")
     max_price_points: int = 500
 
     @classmethod
@@ -20,10 +21,13 @@ class Settings:
         if not 1 <= max_points <= 10_000:
             raise ValueError("ASET_MAX_PRICE_POINTS must be between 1 and 10000")
         origins = tuple(item.strip() for item in raw_origins.split(",") if item.strip())
+        raw_hosts = os.getenv("ASET_ALLOWED_HOSTS", "127.0.0.1,localhost,testserver")
+        hosts = tuple(item.strip() for item in raw_hosts.split(",") if item.strip())
         return cls(
             app_name=os.getenv("ASET_APP_NAME", cls.app_name),
             environment=os.getenv("ASET_ENVIRONMENT", cls.environment),
             allowed_origins=origins,
+            allowed_hosts=hosts,
             max_price_points=max_points,
         )
 

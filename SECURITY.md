@@ -19,6 +19,19 @@ https://www.instagram.com/amormagics/
 ## Secrets
 Never commit API keys, access tokens, cloud credentials, private datasets, .env files, or customer data.
 Use environment variables or a managed secret store for deployment credentials.
+The application never provides a fake credential fallback: missing credentials must fail closed or use an explicitly documented offline fixture mode.
+
+## Application controls
+
+- The production research API is read-only and has no brokerage, custody, wallet, or order-submission capability.
+- Host allowlists and CORS origins are explicit configuration; wildcard origins are not permitted for deployment.
+- Responses include security headers, request correlation IDs, and bounded query sizes.
+- Provider failures return stable public errors without exposing upstream exceptions, credentials, or internal paths.
+- External data is treated as untrusted input and validated before normalization or calculation.
+
+## Supply-chain controls
+
+CI installs from the root package metadata, runs Ruff, mypy, tests, Bandit, and pip-audit, and uses read-only GitHub token permissions for quality jobs. Dependency changes should be reviewed and pinned where provider compatibility requires a fixed version.
 
 ## Data safety
 Treat external market/fundamental data as untrusted input. Validate schemas, units, dates and provenance before material calculations.

@@ -23,7 +23,7 @@ class CodexHarness:
     def __init__(self, model_name: str = "astra-opensource", base_url: Optional[str] = None, api_key: Optional[str] = None):
         self.model_name = model_name
         self.base_url = base_url or os.getenv("ASTRA_BASE_URL", "https://api.openai.com/v1")
-        self.api_key = api_key or os.getenv("ASTRA_API_KEY", "sk-default-key")
+        self.api_key = api_key or os.getenv("ASTRA_API_KEY")
         self.session_id = f"codex-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
         self.history: List[Dict[str, str]] = []
 
