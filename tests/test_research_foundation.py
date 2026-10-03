@@ -30,7 +30,17 @@ def test_domain_rejects_naive_provenance() -> None:
 def test_metrics_reject_duplicate_dates() -> None:
     security_provenance = Provenance("fixture", "fixture://security", datetime.now(timezone.utc), date(2024, 1, 1))
     security = Security("X", "Example", "NYSE", "USD", security_provenance)
-    first = PriceObservation(security, date(2024, 1, 1), Decimal("10"), Provenance("fixture", "fixture://1", datetime.now(timezone.utc), date(2024, 1, 1)))
-    duplicate = PriceObservation(security, date(2024, 1, 1), Decimal("11"), Provenance("fixture", "fixture://2", datetime.now(timezone.utc), date(2024, 1, 1)))
+    first = PriceObservation(
+        security,
+        date(2024, 1, 1),
+        Decimal("10"),
+        Provenance("fixture", "fixture://1", datetime.now(timezone.utc), date(2024, 1, 1)),
+    )
+    duplicate = PriceObservation(
+        security,
+        date(2024, 1, 1),
+        Decimal("11"),
+        Provenance("fixture", "fixture://2", datetime.now(timezone.utc), date(2024, 1, 1)),
+    )
     with pytest.raises(ValueError, match="unique dates"):
         simple_return((first, duplicate))

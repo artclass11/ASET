@@ -24,7 +24,13 @@ class FixtureMarketDataProvider:
 
     def __init__(self, securities: dict[str, Security], prices: dict[str, Sequence[PriceObservation]]) -> None:
         self._securities = {key.upper(): value for key, value in securities.items()}
-        self._prices = {key.upper(): tuple(value) for key, value in prices.items()}
+        self._prices = {}
+        for key, value in prices.items():
+            observations = tuple(value)
+            dates = [item.trading_date for item in observations]
+            if dates != sorted(set(dates)):
+                raise ValueError(f"fixture observations for {key} must be unique and ordered")
+            self._prices[key.upper()] = observations
 
     def get_security(self, symbol: str) -> Security:
         try:
@@ -43,7 +49,8 @@ class FixtureMarketDataProvider:
 
 def make_fixture_provider() -> FixtureMarketDataProvider:
     """Return a small reproducible ASET demo dataset."""
-    security_provenance = Provenance("fixture", "fixture://securities", datetime.now(timezone.utc), date(2024, 1, 5))
+    observed_at = datetime(2024, 1, 5, tzinfo=timezone.utc)
+    security_provenance = Provenance("fixture", "fixture://securities", observed_at, date(2024, 1, 5))
     security = Security("ASET", "ASET Demo Corp", "NASDAQ", "USD", security_provenance)
     values = (100, 102, 101, 105, 110)
     prices = tuple(
@@ -51,7 +58,9 @@ def make_fixture_provider() -> FixtureMarketDataProvider:
             security=security,
             trading_date=date(2024, 1, index + 1),
             close=Decimal(value),
-            provenance=Provenance("fixture", f"fixture://prices/ASET/{index + 1}", datetime.now(timezone.utc), date(2024, 1, index + 1)),
+            provenance=Provenance(
+                "fixture", f"fixture://prices/ASET/{index + 1}", observed_at, date(2024, 1, index + 1)
+            ),
         )
         for index, value in enumerate(values)
     )

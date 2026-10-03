@@ -1,0 +1,57 @@
+Metadata-Version: 2.4
+Name: open-stock-research-engine
+Version: 0.2.0
+Summary: Bulk multi-provider public equity research engine
+Author: Amor Research Tools
+License: MIT
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: pandas>=2.2
+Requires-Dist: numpy>=2.0
+Requires-Dist: pyarrow>=18.0
+Requires-Dist: openpyxl>=3.1
+Requires-Dist: yfinance==1.7.0
+Requires-Dist: financedatabase==2.4.0
+Requires-Dist: akshare==1.18.95
+Requires-Dist: pandas-datareader==0.11.1
+Requires-Dist: edgartools==5.58.0
+Requires-Dist: sec-edgar-downloader==5.1.0
+Requires-Dist: fastapi>=0.115
+Requires-Dist: uvicorn[standard]>=0.34
+Requires-Dist: python-multipart>=0.0.20
+Requires-Dist: jinja2>=3.1
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: httpx>=0.27; extra == "dev"
+Requires-Dist: ruff>=0.8; extra == "dev"
+Requires-Dist: mypy>=1.13; extra == "dev"
+Requires-Dist: pip-audit>=2.7; extra == "dev"
+
+# ASET — Open Stock Research & Quantitative Engine
+
+Open-source, multi-provider stock research, screening, analytics and quantitative backtesting platform.
+
+## Providers
+- yfinance
+- FinanceDatabase
+- AKShare
+- pandas-datareader
+- EdgarTools
+- sec-edgar-downloader
+
+## Quant engines
+- Backtrader
+- vectorbt
+- QuantConnect LEAN
+
+## Architecture direction
+The project is designed for anonymous/public use, stateless API replicas, asynchronous research jobs, shared caching, persistent storage, analytical workloads and Kubernetes-based enterprise deployment.
+
+## Status
+Initial ASET repository bootstrap. See the application package under `stock_analyzer/`.
+
+## Data integrity
+Provider coverage differs. The application preserves provider provenance and data-quality flags. Material financial figures should be validated against primary filings.
+
+## License
+MIT for the ASET project. External dependency licenses remain applicable to their respective projects.

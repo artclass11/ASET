@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from stock_analyzer.api import app
 
-
 client = TestClient(app)
 
 

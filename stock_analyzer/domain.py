@@ -41,7 +41,12 @@ class Security:
     provenance: Provenance
 
     def __post_init__(self) -> None:
-        for value, label in ((self.symbol, "symbol"), (self.name, "name"), (self.exchange, "exchange"), (self.currency, "currency")):
+        for value, label in (
+            (self.symbol, "symbol"),
+            (self.name, "name"),
+            (self.exchange, "exchange"),
+            (self.currency, "currency"),
+        ):
             if not value.strip():
                 raise ValueError(f"{label} is required")
         if self.currency.upper() != self.currency:
