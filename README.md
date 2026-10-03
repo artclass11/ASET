@@ -20,6 +20,23 @@ ASET is an open-source foundation for multi-provider stock research, screening, 
 
 **Import → validate → calculate → inspect → export.**
 
+Open the browser-only local demo:
+[SignalDesk core](products/signaldesk/index.html)
+
+For **real provider-backed data**, use the self-hosted live application:
+[SignalDesk Live](apps/live-signaldesk/)
+
+It uses Alpha Vantage on the server, keeps the API key out of the browser, shows provider/freshness metadata, and refuses to fabricate missing values. See the [Live deployment guide](apps/live-signaldesk/README.md).
+
+The open core includes CSV validation, net margin, income growth, average supplied net income, debt/cash, market-cap-to-income proxy, flags and JSON/Markdown output.
+
+Commercial Pro can be licensed separately for additional live providers, automated refresh, PDF/HTML reporting, saved workspaces, API/team deployment, custom integrations and enterprise support.
+
+**Buy / license:** [Instagram @amormagics](https://www.instagram.com/amormagics/) · [Direct message](https://ig.me/m/amormagics)
+
+
+**Import → validate → calculate → inspect → export.**
+
 Open the interactive local dashboard at [SignalDesk](products/signaldesk/index.html). The free core includes CSV validation, net margin, income growth, average supplied net income, debt/cash, market-cap-to-income proxy, flags and JSON/Markdown output.
 
 Commercial Pro can be licensed separately for live data adapters, scheduled refresh, PDF/HTML reports, saved workspaces, API/team deployment, custom integrations and enterprise support. See [docs/product.md](docs/product.md) for the commercial workflow and scope.
