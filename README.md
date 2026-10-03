@@ -47,6 +47,10 @@ ASET preserves provider provenance and quality metadata in its normalized resear
 
 Never commit API keys, access tokens, cloud credentials, private datasets or customer information. See [SECURITY.md](SECURITY.md).
 
+## Commercial readiness
+
+The MIT license permits commercial use, but a sale also requires contributor-ownership confirmation, third-party dependency notices, provider-data rights review, and a written customer agreement. See [docs/COMMERCIAL_READINESS.md](docs/COMMERCIAL_READINESS.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). These documents are checklists, not legal advice.
+
 ## Contributing
 
 Focused pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), the issue templates and the pull-request checklist.
