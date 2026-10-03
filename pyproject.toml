@@ -3,13 +3,14 @@ requires = ["setuptools>=75", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "open-stock-research-engine"
-version = "0.2.0"
-description = "Bulk multi-provider public equity research engine"
+name = "aset-research-engine"
+version = "0.3.0"
+description = "Open multi-provider public-equity research and quantitative analytics engine"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "Amor Research Tools"}]
+keywords = ["equity research", "quantitative finance", "market data", "analytics", "backtesting"]
 dependencies = [
   "pandas>=2.2",
   "numpy>=2.0",
@@ -57,4 +58,4 @@ exclude = "(main|astra_model_setup|codex_harness|huggingface_integration)\\.py$"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-testpaths = ["tests"]
+testpaths = ["tests", "products/signaldesk"]

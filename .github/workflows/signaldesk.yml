@@ -1,0 +1,30 @@
+name: SignalDesk CI
+
+on:
+  push:
+    paths:
+      - "products/signaldesk/**"
+      - ".github/workflows/signaldesk.yml"
+  pull_request:
+    paths:
+      - "products/signaldesk/**"
+      - ".github/workflows/signaldesk.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Smoke test
+        run: |
+          python products/signaldesk/signaldesk.py products/signaldesk/sample_data/companies.csv --format json > /tmp/signaldesk.json
+          python - <<'PY'
+          import json
+          data = json.load(open("/tmp/signaldesk.json"))
+          assert len(data["companies"]) == 3
+          assert data["companies"][0]["financials"]["net_margin"] is not None
+          print("SignalDesk smoke test passed")
+          PY

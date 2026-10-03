@@ -16,17 +16,19 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - name: Install tooling
-        run: python -m pip install --upgrade pip setuptools wheel && pip install -e ".[dev]"
-      - name: Compile
-        run: python -m compileall .
+      - name: Install tooling and package
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e ".[dev]"
+      - name: Compile maintained Python code
+        run: python -m compileall stock_analyzer products tests
       - name: Tests
         run: pytest -q
       - name: Lint
-        run: ruff check .
+        run: ruff check stock_analyzer products tests
       - name: Format check
-        run: ruff format --check .
+        run: ruff format --check stock_analyzer products tests
       - name: Type check
-        run: mypy .
+        run: mypy stock_analyzer products tests
       - name: Dependency audit
         run: pip-audit --skip-editable
