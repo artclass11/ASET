@@ -10,6 +10,7 @@ from typing import Any
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -22,6 +23,20 @@ DEMO_SYMBOL = "IBM"
 BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI(title="ASET SignalDesk Live", version="1.0.0")
+CORS_ORIGINS = [
+    item.strip() for item in os.getenv(
+        "SIGNALDESK_CORS_ORIGINS",
+        "http://tauri.localhost,http://localhost:1420,http://127.0.0.1:1420",
+    ).split(",")
+    if item.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "OPTIONS"],
+    allow_headers=["Accept", "Content-Type"],
+)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 cache: dict[str, tuple[float, dict[str, Any]]] = {}
 lock = asyncio.Lock()
