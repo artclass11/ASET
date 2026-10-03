@@ -1,0 +1,140 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: aset-postgres
+    environment:
+      POSTGRES_DB: aset
+      POSTGRES_USER: aset
+      POSTGRES_PASSWORD: aset_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aset"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aset-network
+
+  # Redis Cache & Broker
+  redis:
+    image: redis:7-alpine
+    container_name: aset-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aset-network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: aset-backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      DATABASE_URL: postgresql://aset:aset_dev_password@postgres:5432/aset
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      SECRET_KEY: dev-secret-key-change-in-production
+      DEBUG: "True"
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    networks:
+      - aset-network
+
+  # Streamlit Dashboard
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dashboard
+    container_name: aset-dashboard
+    command: streamlit run dashboard/app.py --logger.level=info
+    environment:
+      API_URL: http://backend:8000
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    networks:
+      - aset-network
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: aset-celery-worker
+    command: celery -A app.tasks.celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://aset:aset_dev_password@postgres:5432/aset
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      SECRET_KEY: dev-secret-key-change-in-production
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    networks:
+      - aset-network
+
+  # Celery Beat (Scheduler)
+  celery_beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: aset-celery-beat
+    command: celery -A app.tasks.celery_app beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      DATABASE_URL: postgresql://aset:aset_dev_password@postgres:5432/aset
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      SECRET_KEY: dev-secret-key-change-in-production
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    networks:
+      - aset-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  aset-network:
+    driver: bridge
