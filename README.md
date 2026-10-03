@@ -30,6 +30,10 @@ It uses Alpha Vantage on the server, keeps the API key out of the browser, shows
 
 The open core includes CSV validation, net margin, income growth, average supplied net income, debt/cash, market-cap-to-income proxy, flags and JSON/Markdown output.
 
+### Windows desktop
+
+[ASET SignalDesk for Windows](apps/windows-signaldesk/) is a Tauri desktop client for the live SignalDesk API. It packages as both an NSIS setup executable and MSI through GitHub Actions and keeps provider credentials on the API server.
+
 Commercial Pro can be licensed separately for additional live providers, automated refresh, PDF/HTML reporting, saved workspaces, API/team deployment, custom integrations and enterprise support.
 
 **Buy / license:** [Instagram @amormagics](https://www.instagram.com/amormagics/) · [Direct message](https://ig.me/m/amormagics)
