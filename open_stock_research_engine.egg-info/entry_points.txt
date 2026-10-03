@@ -1,2 +1,0 @@
-[console_scripts]
-stock-research = stock_analyzer:cli

@@ -12,3 +12,5 @@ venv/
 *.log
 .coverage
 htmlcov/
+
+*.egg-info/
