@@ -1,0 +1,13 @@
+[package]
+name = "aset-signaldesk"
+version = "0.1.0"
+description = "ASET SignalDesk Windows desktop client"
+authors = ["Amor Research Tools"]
+edition = "2024"
+rust-version = "1.90"
+
+[build-dependencies]
+tauri-build = { version = "2.7.0" }
+
+[dependencies]
+tauri = { version = "2.12.0" }
