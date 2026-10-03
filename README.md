@@ -19,8 +19,12 @@ Open-source, multi-provider stock research, screening, analytics and quantitativ
 
 **SignalDesk** is the first commercial-ready product layer in ASET: import financial fundamentals and generate a structured analyst-style research brief locally.
 
+### Try it
+
+Open the zero-dependency browser dashboard: [products/signaldesk/index.html](products/signaldesk/index.html)
+
 Free core:
-- CSV validation
+- browser CSV import and validation
 - growth calculations
 - net margin
 - debt-to-cash
@@ -36,7 +40,7 @@ Commercial Pro:
 - API/team deployment
 - custom branding and enterprise implementation
 
-See [products/signaldesk/](products/signaldesk/) for the runnable core, sample data, commercial terms template and a minimal purchase page.
+See [products/signaldesk/](products/signaldesk/) for the runnable engine, interactive dashboard, sample data, tests, commercial terms template and purchase page.
 
 ### Purchase
 
