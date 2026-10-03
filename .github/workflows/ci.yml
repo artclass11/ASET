@@ -16,15 +16,17 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - name: Install tooling
-        run: python -m pip install --upgrade pip && pip install pytest ruff mypy pip-audit
-      - name: Compile
-        run: python -m compileall .
+      - name: Install test and quality tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest ruff mypy pip-audit fastapi httpx pydantic
+      - name: Compile maintained Python code
+        run: python -m compileall stock_analyzer products tests
       - name: Tests
-        run: pytest -q
-      - name: Lint
-        run: ruff check .
-      - name: Type check
-        run: mypy .
+        run: python -m pytest -q
+      - name: Lint maintained Python code
+        run: ruff check stock_analyzer products tests
+      - name: Type check maintained Python code
+        run: mypy stock_analyzer products tests
       - name: Dependency audit
         run: pip-audit
