@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASET SignalDesk</title>
+<meta name="description" content="Local-first financial research dashboard. Import CSV fundamentals and generate transparent research metrics.">
+<style>
+:root{color-scheme:dark;--bg:#050505;--panel:#0d0d0e;--panel2:#111113;--line:#242426;--text:#f5f5f5;--muted:#99999f;--good:#b8f1c7;--warn:#f5d38a;--bad:#ffb4b4}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 70% -10%,#181818 0,#050505 38%);color:var(--text);font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:1220px;margin:auto;padding:28px 20px 70px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:42px}.brand{font-weight:800;letter-spacing:-.03em;font-size:18px}.brand span{color:var(--muted);font-weight:500}
+.nav{display:flex;gap:9px;flex-wrap:wrap}.nav a{color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:8px 12px;border-radius:999px}.nav a:hover{color:#fff;border-color:#444}
+.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:20px;align-items:end;margin-bottom:24px}.eyebrow{font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--muted)}h1{font-size:clamp(40px,7vw,78px);line-height:.94;letter-spacing:-.06em;margin:12px 0 16px;max-width:850px}.lead{font-size:18px;color:#c9c9ce;max-width:760px}
+.heroCard{background:linear-gradient(180deg,#111,#0a0a0b);border:1px solid var(--line);padding:22px;border-radius:20px}.heroCard strong{font-size:30px;display:block;letter-spacing:-.04em}.heroCard small{color:var(--muted)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}.btn{appearance:none;border:1px solid var(--line);background:#0f0f10;color:#fff;padding:11px 15px;border-radius:12px;cursor:pointer;font:inherit}.btn:hover{border-color:#555}.btn.primary{background:#fff;color:#000;border-color:#fff}.btn.ghost{background:transparent}
+input[type=file]{display:none}.upload{display:inline-flex;align-items:center;gap:8px}
+.panel{border:1px solid var(--line);background:rgba(12,12,13,.9);border-radius:20px;padding:18px;margin-top:14px}.panelHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px}.panelHead h2{font-size:15px;margin:0}.panelHead span{color:var(--muted);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{background:#101011;border:1px solid var(--line);padding:16px;border-radius:16px}.stat b{display:block;font-size:24px;letter-spacing:-.04em}.stat span{color:var(--muted);font-size:12px}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:16px}.table{width:100%;border-collapse:collapse;min-width:820px}.table th,.table td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left}.table th{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);background:#0e0e0f;position:sticky;top:0}.table tr:last-child td{border-bottom:0}.company{font-weight:700}.muted{color:var(--muted)}.tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#171718;border:1px solid #2a2a2c;color:#ddd;font-size:11px;margin:2px}
+.drop{border:1px dashed #3b3b3d;padding:18px;border-radius:16px;color:var(--muted);text-align:center;margin-bottom:14px}.drop.drag{border-color:#fff;color:#fff;background:#111}
+footer{padding-top:34px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.buy{color:#fff;text-decoration:none}
+@media(max-width:880px){.hero{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:540px){.stats{grid-template-columns:1fr}.wrap{padding-left:14px;padding-right:14px}h1{font-size:48px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">ASET <span>/ SignalDesk</span></div>
+    <nav class="nav">
+      <a href="#dashboard">Dashboard</a>
+      <a href="#data">Data</a>
+      <a href="#buy">Pro</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Local-first financial research</div>
+      <h1>See the shape of a business fast.</h1>
+      <p class="lead">Drop in a fundamentals CSV. SignalDesk validates the fields, calculates repeatable metrics and turns raw numbers into a compact research table — entirely in your browser.</p>
+      <div class="toolbar">
+        <label class="btn primary upload"><input id="file" type="file" accept=".csv,text/csv">Import CSV</label>
+        <button class="btn" id="sample">Load sample</button>
+        <button class="btn ghost" id="download">Export JSON</button>
+      </div>
+    </div>
+    <div class="heroCard">
+      <strong id="companyCount">0</strong>
+      <small>companies loaded</small>
+      <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+      <strong id="flagCount">0</strong>
+      <small>research flags</small>
+    </div>
+  </section>
+
+  <section id="data" class="panel">
+    <div class="panelHead"><h2>Data import</h2><span>Required: ticker, company, revenue, net_income, market_cap, debt, cash</span></div>
+    <div class="drop" id="drop">Drag & drop a CSV here, or use Import CSV above.</div>
+    <div class="muted" id="status">Waiting for data.</div>
+  </section>
+
+  <section id="dashboard" class="panel">
+    <div class="panelHead"><h2>Research dashboard</h2><span id="sourceLabel">Sample data</span></div>
+    <div class="stats">
+      <div class="stat"><b id="avgMargin">—</b><span>average net margin</span></div>
+      <div class="stat"><b id="profitable">—</b><span>profitable companies</span></div>
+      <div class="stat"><b id="avgIncome">—</b><span>average net income</span></div>
+      <div class="stat"><b id="flagged">—</b><span>companies with flags</span></div>
+    </div>
+    <div class="tableWrap" style="margin-top:14px">
+      <table class="table">
+        <thead><tr><th>Company</th><th>Revenue</th><th>Net income</th><th>Margin</th><th>Debt / cash</th><th>5Y avg income</th><th>Flags</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="buy">
+    <div class="panelHead"><h2>SignalDesk Pro</h2><span>Commercial edition</span></div>
+    <p style="max-width:760px;color:#c6c6ca">The open core is intentionally transparent and local. Pro can add live-provider adapters, scheduled refreshes, PDF/HTML reports, saved watchlists, API deployment, team features and custom integrations.</p>
+    <a class="btn primary buy" href="https://ig.me/m/amormagics" target="_blank" rel="noopener">Buy / ask for Pro →</a>
+    <a class="btn buy" href="https://www.instagram.com/amormagics/" target="_blank" rel="noopener">Instagram @amormagics</a>
+  </section>
+
+  <footer>
+    <span>Research utility only. Validate important figures against authoritative sources.</span>
+    <a class="buy" href="https://www.instagram.com/amormagics/" target="_blank" rel="noopener">Need a license? DM @amormagics</a>
+  </footer>
+</div>
+
+<script>
+const REQUIRED=["ticker","company","revenue","net_income","market_cap","debt","cash"];
+const sample=`ticker,company,revenue,net_income,market_cap,debt,cash,net_income_y1,net_income_y2,net_income_y3,net_income_y4,net_income_y5
+NOVA,Nova Systems,8200000000,1100000000,34000000000,2800000000,2100000000,1100000000,980000000,910000000,870000000,800000000
+ORBIT,Orbit Materials,5200000000,320000000,12500000000,2600000000,700000000,320000000,360000000,290000000,210000000,180000000
+LUMA,Luma Retail,6100000000,-120000000,4800000000,1900000000,450000000,-120000000,60000000,90000000,70000000,40000000`;
+
+let results=[];
+const money=v=>v==null?"—":Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:2}).format(v);
+const pct=v=>v==null?"—":(v*100).toFixed(1)+"%";
+const num=s=>{const v=Number(String(s??"").replace(/,/g,"").trim());return Number.isFinite(v)?v:null};
+const growth=(a,b)=>a==null||b==null||b===0?null:a/b-1;
+
+function parseCSV(text){
+  const lines=text.replace(/^\uFEFF/,"").trim().split(/\r?\n/);
+  if(!lines.length) throw new Error("CSV is empty.");
+  const split=line=>{const out=[];let cell="",quote=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(quote&&line[i+1]==='"'){cell+='"';i++;}else quote=!quote}else if(c===','&&!quote){out.push(cell);cell="";}else cell+=c}out.push(cell);return out};
+  const headers=split(lines[0]).map(x=>x.trim());
+  const missing=REQUIRED.filter(x=>!headers.includes(x));
+  if(missing.length) throw new Error("Missing columns: "+missing.join(", "));
+  return lines.slice(1).filter(x=>x.trim()).map(line=>{const cells=split(line);const row={};headers.forEach((h,i)=>row[h]=cells[i]??"");return row});
+}
+
+function analyze(r){
+  const revenue=num(r.revenue),income=num(r.net_income),cap=num(r.market_cap),debt=num(r.debt),cash=num(r.cash);
+  const hist=[1,2,3,4,5].map(i=>num(r["net_income_y"+i])).filter(v=>v!=null);
+  const margin=income!=null&&revenue?income/revenue:null;
+  const debtCash=debt!=null&&cash?debt/cash:null;
+  const multiple=income!=null&&income!==0&&cap!=null?cap/income:null;
+  const flags=[];
+  if(margin!=null&&margin<0) flags.push("negative margin");
+  if(debtCash!=null&&debtCash>3) flags.push("high debt/cash");
+  if(multiple!=null&&multiple>60) flags.push("high cap/earnings");
+  const prior=hist.length>=2?hist[1]:null;
+  const g=growth(income,prior);
+  if(g!=null&&g<0) flags.push("income down");
+  return {ticker:r.ticker,company:r.company,financials:{revenue,income,marketCap:cap,debt,cash,margin,debtCash,multiple,averageIncome:hist.length?hist.reduce((a,b)=>a+b,0)/hist.length:null,growth:g},flags};
+}
+
+function render(items,label){
+  results=items;
+  document.getElementById("companyCount").textContent=items.length;
+  document.getElementById("flagCount").textContent=items.reduce((n,x)=>n+x.flags.length,0);
+  document.getElementById("sourceLabel").textContent=label;
+  const margins=items.map(x=>x.financials.margin).filter(x=>x!=null);
+  const incomes=items.map(x=>x.financials.income).filter(x=>x!=null);
+  document.getElementById("avgMargin").textContent=margins.length?pct(margins.reduce((a,b)=>a+b,0)/margins.length):"—";
+  document.getElementById("profitable").textContent=items.filter(x=>x.financials.income!=null&&x.financials.income>0).length;
+  document.getElementById("avgIncome").textContent=incomes.length?money(incomes.reduce((a,b)=>a+b,0)/incomes.length):"—";
+  document.getElementById("flagged").textContent=items.filter(x=>x.flags.length).length;
+  document.getElementById("rows").innerHTML=items.map(x=>{const f=x.financials;return `<tr><td><span class="company">${escapeHtml(x.company)}</span><br><span class="muted">${escapeHtml(x.ticker)}</span></td><td>${money(f.revenue)}</td><td>${money(f.income)}</td><td>${pct(f.margin)}</td><td>${f.debtCash==null?"—":f.debtCash.toFixed(2)+"x"}</td><td>${money(f.averageIncome)}</td><td>${x.flags.length?x.flags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join(""):'<span class="muted">none</span>'}</td></tr>`}).join("");
+  document.getElementById("status").textContent=`${items.length} company records analyzed locally.`;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+function loadText(text,label){try{render(parseCSV(text).map(analyze),label)}catch(e){document.getElementById("status").textContent=e.message}}
+document.getElementById("sample").onclick=()=>loadText(sample,"Built-in sample");
+document.getElementById("file").onchange=e=>{const f=e.target.files?.[0];if(f){const r=new FileReader();r.onload=()=>loadText(String(r.result),f.name);r.readAsText(f)}};
+const drop=document.getElementById("drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("drag")}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("drag")}));
+drop.addEventListener("drop",e=>{const f=e.dataTransfer.files?.[0];if(f){const r=new FileReader();r.onload=()=>loadText(String(r.result),f.name);r.readAsText(f)}});
+document.getElementById("download").onclick=()=>{
+  if(!results.length)return;
+  const blob=new Blob([JSON.stringify({generatedAt:new Date().toISOString(),companies:results},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="signaldesk-report.json";a.click();URL.revokeObjectURL(a.href);
+};
+loadText(sample,"Built-in sample");
+</script>
+</body>
+</html>
