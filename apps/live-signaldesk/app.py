@@ -157,14 +157,14 @@ async def build_research(symbol: str, entitlement: str | None) -> dict[str, Any]
     )
 
     revenue = latest(inc, "totalRevenue")
-    debt = latest(
-        bal,
-        "shortTermDebt",
-        "longTermDebt",
-        "currentDebt",
-        "longTermDebtNoncurrent",
-        "shortLongTermDebtTotal",
-    )
+    debt = None
+    balance_rows = annual(bal)
+    if balance_rows:
+        row = balance_rows[0]
+        short_term = number(row.get("shortTermDebt")) or number(row.get("currentDebt")) or 0
+        long_term = number(row.get("longTermDebt")) or number(row.get("longTermDebtNoncurrent")) or 0
+        combined = short_term + long_term
+        debt = combined if combined != 0 else latest(bal, "shortLongTermDebtTotal")
     cash = latest(
         bal,
         "cashAndCashEquivalentsAtCarryingValue",
