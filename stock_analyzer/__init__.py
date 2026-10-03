@@ -4,6 +4,11 @@ from .analytics import MetricResult, annualized_volatility, maximum_drawdown, si
 from .domain import DataQuality, PriceObservation, Provenance, Security
 from .providers import FixtureMarketDataProvider, MarketDataProvider, make_fixture_provider
 
+try:
+    from .api import create_app
+except ImportError:  # pragma: no cover - allows domain-only installations
+    create_app = None  # type: ignore[assignment]
+
 __all__ = [
     "DataQuality",
     "FixtureMarketDataProvider",
@@ -13,6 +18,7 @@ __all__ = [
     "Provenance",
     "Security",
     "annualized_volatility",
+    "create_app",
     "maximum_drawdown",
     "make_fixture_provider",
     "simple_return",
