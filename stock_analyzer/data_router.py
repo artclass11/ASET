@@ -19,6 +19,7 @@ import importlib.metadata
 import importlib.util
 import os
 import re
+import shutil
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from typing import Any
@@ -241,6 +242,15 @@ def source_health(spec: SourceSpec) -> dict[str, Any]:
         status = "needs_configuration"
     if spec.source_id == "fixture":
         status = "development_only"
+    if spec.source_id == "lean":
+        available = shutil.which("lean") is not None
+        version = None
+        if available:
+            try:
+                version = importlib.metadata.version("lean")
+            except importlib.metadata.PackageNotFoundError:
+                version = "cli-installed"
+        status = "ready" if available else "unavailable"
     return {
         **asdict(spec),
         "dataset_kinds": [x.value for x in spec.dataset_kinds],
