@@ -13,7 +13,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 
 from .analytics import annualized_volatility, maximum_drawdown, simple_return
 from .config import Settings
-from .providers import MarketDataProvider, make_fixture_provider
+from .providers import MarketDataProvider, make_provider_from_env
 from .data_router import all_source_health, filter_finance_database, route_task
 
 
@@ -57,7 +57,7 @@ def _metric_payload(result: Any) -> dict[str, Any]:
 
 def build_server(provider: MarketDataProvider | None = None, settings: Settings | None = None) -> MCPServer:
     """Build an MCP server backed by an explicitly selected read-only provider."""
-    selected_provider = provider or make_fixture_provider()
+    selected_provider = provider or make_provider_from_env()
     selected_settings = settings or Settings.from_env()
     server = MCPServer(
         name="aset-research",
@@ -66,7 +66,7 @@ def build_server(provider: MarketDataProvider | None = None, settings: Settings 
             "Read-only ASET public-equity research tools. "
             "Results include provider provenance and are not investment advice."
         ),
-        version="0.3.0",
+        version="0.4.0",
         instructions=(
             "Use these tools for transparent research lookups only. "
             "Do not represent fixture data as live market data. "
