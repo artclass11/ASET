@@ -232,6 +232,10 @@ def package_version(module_name: str | None) -> str | None:
         "vectorbt": "vectorbt",
         "backtrader": "backtrader",
         "AlgorithmImports": "lean",
+        "openbb_nasdaq": "openbb-nasdaq",
+        "openbb_sec": "openbb-sec",
+        "openbb_fred": "openbb-fred",
+        "openbb_tmx": "openbb-tmx",
     }
     try:
         return importlib.metadata.version(distribution_names.get(module_name, module_name))
@@ -358,6 +362,9 @@ def _score(spec: SourceSpec, request: DatasetRequest) -> tuple[int, list[str]]:
     if request.kind == DatasetKind.PRICES and spec.source_id == "yfinance_prices":
         score += 20
         reasons.append("broad batch price coverage")
+    if request.kind == DatasetKind.PRICES and spec.source_id in {"openbb_nasdaq", "openbb_tmx"}:
+        score += 10
+        reasons.append("OpenBB provider-specific market-data route")
     if request.kind == DatasetKind.FUNDAMENTALS and spec.source_id == "yfinance_screener":
         score += 25
         reasons.append("native bulk fundamentals screening")
@@ -436,16 +443,11 @@ def route_workflow(
             DatasetRequest(DatasetKind.UNIVERSE, normalized_region, scale, "discover", False),
             DatasetRequest(DatasetKind.FUNDAMENTALS, normalized_region, "large", "screen", True),
             DatasetRequest(DatasetKind.PRICES, normalized_region, "large", "screen", True),
-            DatasetRequest(
-                DatasetKind.FILINGS,
-                normalized_region,
-                "small",
-                "verification",
-                True,
-            ),
         ]
-        if normalized_region == "global":
-            stages[-1] = DatasetRequest(DatasetKind.FILINGS, normalized_region, "small", "verification", True)
+        if normalized_region == "united_states":
+            stages.append(DatasetRequest(DatasetKind.FILINGS, normalized_region, "small", "verification", True))
+        elif normalized_region == "global":
+            stages.append(DatasetRequest(DatasetKind.FILINGS, "united_states", "small", "verification", True))
     else:
         stages = [DatasetRequest(infer_kind(task), normalized_region, scale, stage, True)]
 
@@ -487,8 +489,6 @@ def filter_finance_database(
     exchange: str | None = None,
     sector: str | None = None,
     industry: str | None = None,
-    min_market_cap: float | None = None,
-    max_market_cap: float | None = None,
     only_primary_listing: bool = True,
     include_delisted: bool = False,
     market_cap_categories: list[str] | None = None,
@@ -530,12 +530,6 @@ def filter_finance_database(
     if not include_delisted and "delisted" in frame.columns:
         values = frame["delisted"].astype(str).str.strip().str.lower()
         frame = frame[~values.isin({"true", "1", "yes", "y"})]
-
-    if min_market_cap is not None or max_market_cap is not None:
-        # FinanceDatabase market_cap is a categorical size bucket, not a numeric valuation.
-        raise ValueError(
-            "FinanceDatabase market_cap is categorical. Use market_cap_categories instead of numeric min/max values."
-        )
 
     frame = frame.head(max(1, min(int(limit), 100_000)))
     records = frame.reset_index().to_dict(orient="records")
