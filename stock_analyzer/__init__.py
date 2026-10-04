@@ -2,9 +2,15 @@
 
 from .analytics import MetricResult, annualized_volatility, maximum_drawdown, simple_return
 from .config import Settings, cli
-from .domain import DataQuality, PriceObservation, Provenance, Security
-from .providers import FixtureMarketDataProvider, MarketDataProvider, YFinanceMarketDataProvider, make_fixture_provider, make_provider_from_env
 from .data_router import DatasetKind, DatasetRequest, route, route_task, route_workflow
+from .domain import DataQuality, PriceObservation, Provenance, Security
+from .providers import (
+    FixtureMarketDataProvider,
+    MarketDataProvider,
+    YFinanceMarketDataProvider,
+    make_fixture_provider,
+    make_provider_from_env,
+)
 
 try:
     from .api import create_app
