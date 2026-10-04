@@ -184,6 +184,52 @@ def build_server(provider: MarketDataProvider | None = None, settings: Settings 
         from .source_adapters import fetch_openbb_coverage
         return fetch_openbb_coverage()
 
+    @server.tool(name="aset_auto_multibagger_screen")
+    def auto_multibagger_screen(
+        region: str = "global",
+        country: str | None = None,
+        exchange: str | None = None,
+        sector: str | None = None,
+        industry: str | None = None,
+        market_cap_categories: list[str] | None = None,
+        min_market_cap: float | None = None,
+        max_market_cap: float | None = None,
+        min_revenue_growth: float | None = 10.0,
+        min_income_growth: float | None = 10.0,
+        min_roe: float | None = 10.0,
+        max_pe: float | None = 60.0,
+        universe_limit: int = 20_000,
+        fast_screen_limit: int = 1_000,
+        fundamentals_limit: int = 25,
+        top_k: int = 20,
+        max_workers: int = 8,
+        verify_us_filings: int = 0,
+    ) -> dict[str, Any]:
+        """Run the staged automatic universe -> screen -> deep-dive -> verification pipeline."""
+        from .research_pipeline import MultibaggerPipelineConfig, run_multibagger_pipeline
+        bounded = {
+            "universe_limit": max(1, min(int(universe_limit), 100_000)),
+            "fast_screen_limit": max(1, min(int(fast_screen_limit), 2_500)),
+            "fundamentals_limit": max(1, min(int(fundamentals_limit), 100)),
+            "top_k": max(1, min(int(top_k), 100)),
+            "max_workers": max(1, min(int(max_workers), 16)),
+            "verify_us_filings": max(0, min(int(verify_us_filings), 10)),
+        }
+        return run_multibagger_pipeline(
+            config=MultibaggerPipelineConfig(region=region, **bounded),
+            country=country,
+            exchange=exchange,
+            sector=sector,
+            industry=industry,
+            market_cap_categories=market_cap_categories,
+            min_market_cap=min_market_cap,
+            max_market_cap=max_market_cap,
+            min_revenue_growth=min_revenue_growth,
+            min_income_growth=min_income_growth,
+            min_roe=min_roe,
+            max_pe=max_pe,
+        )
+
     @server.tool(name="aset_calculate_metrics")
     def calculate_metrics(symbol: str, start: date, end: date) -> dict[str, Any]:
         """Calculate transparent return, drawdown, and volatility metrics."""
