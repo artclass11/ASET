@@ -179,7 +179,7 @@ def fetch_yfinance_fundamentals(symbol: str) -> dict[str, Any]:
     normalized = symbol.strip().upper()
     ticker = yf.Ticker(normalized)
     info = ticker.get_info()
-    return {
+    payload = {
         "status": "ok",
         "provider": "yfinance",
         "symbol": normalized,
@@ -197,15 +197,17 @@ def fetch_yfinance_fundamentals(symbol: str) -> dict[str, Any]:
         "balance_sheet": _frame_records(ticker.get_balance_sheet(freq="yearly")),
         "cash_flow": _frame_records(ticker.get_cash_flow(freq="yearly")),
         "valuation": _frame_records(ticker.get_valuation_measures(freq="yearly", periods=5)),
-        "estimates": {
+        "observed_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if include_estimates:
+        payload["estimates"] = {
             "earnings": ticker.get_earnings_estimate(as_dict=True),
             "revenue": ticker.get_revenue_estimate(as_dict=True),
             "growth": ticker.get_growth_estimates(as_dict=True),
             "eps_trend": ticker.get_eps_trend(as_dict=True),
             "eps_revisions": ticker.get_eps_revisions(as_dict=True),
-        },
-        "observed_at": datetime.now(timezone.utc).isoformat(),
-    }
+        }
+    return payload
 
 
 def fetch_yfinance_fundamentals_many(
