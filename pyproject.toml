@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aset-research-engine"
-version = "0.3.0"
+version = "0.4.0"
 description = "Open multi-provider public-equity research and quantitative analytics engine"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,6 +31,7 @@ dependencies = [
 [project.scripts]
 stock-research = "stock_analyzer:cli"
 aset-mcp = "stock_analyzer.mcp_server:main"
+aset-yfinance-mcp = "stock_analyzer.yfinance_mcp:main"
 
 [tool.setuptools.packages.find]
 include = ["stock_analyzer*"]
@@ -63,7 +64,7 @@ warn_return_any = true
 warn_unused_configs = true
 check_untyped_defs = true
 ignore_missing_imports = true
-exclude = "(main|astra_model_setup|codex_harness|huggingface_integration)\\.py$"
+exclude = "(main|astra_model_setup|codex_harness|huggingface_integration)\.py$"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
