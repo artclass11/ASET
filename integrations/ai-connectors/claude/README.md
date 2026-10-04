@@ -19,6 +19,19 @@ https://research.example.com/mcp
 
 Claude supports Streamable HTTP and SSE remote MCP servers; ASET uses Streamable HTTP for new deployments.
 
+## Multi-stock agent workflow
+
+Use the same core sequence as ChatGPT:
+
+1. preflight provider and freshness;
+2. screen the universe in batches with screen_universe;
+3. compare the strongest candidates with compare_stocks;
+4. use multibagger_radar as a second quantitative pass;
+5. independently challenge the top candidates with filings/IR and market evidence;
+6. return survivors plus disconfirming evidence and missing-data gaps.
+
+Claude should act as the adversarial reviewer and keep screen score separate from investment conviction.
+
 ## Claude Code / local MCP
 
 For a local machine, configure the MCP server as a stdio process:
