@@ -20,11 +20,16 @@ ChatGPT / Claude / Manus
 ## What the connector exposes
 
 - analyze_stock — provider-backed quote + fundamentals + five-year income history
+- screen_universe — bounded parallel multi-stock screening
+- compare_stocks — normalized cross-company comparison
+- multibagger_radar — multi-year compounding candidate funnel
 - check_signaldesk — API health
 - get_signaldesk_config — safe provider/config metadata
 - research_prompt — reusable research prompt
 
 All tools are read-only. The connector does not place orders.
+
+For large-universe work, use `agents/multibagger/` as the host-neutral agent protocol. It defines batching, candidate ranking, independent diligence, adversarial review and output requirements for ChatGPT, Claude and Manus.
 
 ## Local MCP
 
