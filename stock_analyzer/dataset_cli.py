@@ -8,7 +8,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from .data_router import all_source_health, filter_finance_database, route_task
+from .data_router import all_source_health, filter_finance_database, route_workflow
 from .source_adapters import (
     choose_backtest_engine,
     fetch_sec_company_filing,
@@ -41,8 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     universe.add_argument("--exchange")
     universe.add_argument("--sector")
     universe.add_argument("--industry")
-    universe.add_argument("--min-market-cap", type=float)
-    universe.add_argument("--max-market-cap", type=float)
+    universe.add_argument("--market-cap", action="append", dest="market_cap_categories", help="market-cap bucket; repeatable")
     universe.add_argument("--include-delisted", action="store_true")
     universe.add_argument("--all-listings", action="store_true")
     universe.add_argument("--limit", type=int, default=10_000)
@@ -67,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
     if args.command == "route":
-        _json(route_task(args.task, region=args.region, scale=args.scale, stage=args.stage))
+        _json(route_workflow(args.task, region=args.region, scale=args.scale, stage=args.stage))
         return 0
 
     if args.command == "sources":
@@ -81,8 +80,7 @@ def main(argv: list[str] | None = None) -> int:
             exchange=args.exchange,
             sector=args.sector,
             industry=args.industry,
-            min_market_cap=args.min_market_cap,
-            max_market_cap=args.max_market_cap,
+            market_cap_categories=args.market_cap_categories,
             only_primary_listing=not args.all_listings,
             include_delisted=args.include_delisted,
             limit=args.limit,
