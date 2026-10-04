@@ -4,24 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aset-research-engine"
-version = "0.3.0"
-description = "Open multi-provider public-equity research and quantitative analytics engine"
+version = "0.4.0"
+description = "Open multi-provider public-equity research, automatic dataset routing and quantitative analytics engine"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{name = "Amor Research Tools"}]
-keywords = ["equity research", "quantitative finance", "market data", "analytics", "backtesting"]
+keywords = ["equity research", "quantitative finance", "market data", "analytics", "dataset routing", "backtesting"]
 dependencies = [
-  "pandas>=2.2",
-  "numpy>=2.0",
-  "pyarrow>=18.0",
-  "openpyxl>=3.1",
-  "yfinance==1.7.0",
-  "financedatabase==2.4.0",
-  "akshare==1.18.95",
-  "pandas-datareader==0.11.1",
-  "edgartools==5.58.0",
-  "sec-edgar-downloader==5.1.0",
   "fastapi>=0.115",
   "uvicorn[standard]>=0.34",
   "python-multipart>=0.0.20",
@@ -36,7 +26,68 @@ aset-mcp = "stock_analyzer.mcp_server:main"
 include = ["stock_analyzer*"]
 
 [project.optional-dependencies]
+analytics = [
+  "pandas>=2.2",
+  "numpy>=2.0",
+  "pyarrow>=18.0",
+  "openpyxl>=3.1",
+]
+universe = [
+  "financedatabase==2.4.0",
+]
+prices = [
+  "pandas>=2.2",
+  "numpy>=2.0",
+  "yfinance==1.7.0",
+]
+china = [
+  "pandas>=2.2",
+  "numpy>=2.0",
+  "akshare==1.19.1",
+]
+sec = [
+  "edgartools==5.58.0",
+  "sec-edgar-downloader==5.1.0",
+]
+macro = [
+  "pandas>=2.2",
+  "pandas-datareader==0.11.1",
+]
+openbb = [
+  "openbb==5.0.0",
+]
+quant-vectorized = [
+  "vectorbt==1.1.1",
+]
+quant-event = [
+  "backtrader",
+]
 connectors = [
+  "mcp>=2.0,<3",
+]
+data = [
+  "pandas>=2.2",
+  "numpy>=2.0",
+  "pyarrow>=18.0",
+  "financedatabase==2.4.0",
+  "yfinance==1.7.0",
+  "akshare==1.19.1",
+  "pandas-datareader==0.11.1",
+  "edgartools==5.58.0",
+  "sec-edgar-downloader==5.1.0",
+]
+all = [
+  "pandas>=2.2",
+  "numpy>=2.0",
+  "pyarrow>=18.0",
+  "openpyxl>=3.1",
+  "financedatabase==2.4.0",
+  "yfinance==1.7.0",
+  "akshare==1.19.1",
+  "pandas-datareader==0.11.1",
+  "edgartools==5.58.0",
+  "sec-edgar-downloader==5.1.0",
+  "openbb==5.0.0",
   "mcp>=2.0,<3",
 ]
 dev = [
