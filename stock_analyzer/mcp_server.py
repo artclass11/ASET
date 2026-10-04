@@ -14,7 +14,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from .analytics import annualized_volatility, maximum_drawdown, simple_return
 from .config import Settings
 from .providers import MarketDataProvider, make_provider_from_env
-from .data_router import all_source_health, filter_finance_database, route_task
+from .data_router import all_source_health, filter_finance_database, route_workflow
 
 
 def _security_payload(security: Any) -> dict[str, Any]:
@@ -116,7 +116,7 @@ def build_server(provider: MarketDataProvider | None = None, settings: Settings 
         }
         if stage not in valid_stages:
             raise ToolError("unsupported stage")
-        return route_task(task, region=region, scale=scale, stage=stage)
+        return route_workflow(task, region=region, scale=scale, stage=stage)
 
     @server.tool(name="aset_source_health")
     def source_health() -> list[dict[str, Any]]:
@@ -129,8 +129,7 @@ def build_server(provider: MarketDataProvider | None = None, settings: Settings 
         exchange: str | None = None,
         sector: str | None = None,
         industry: str | None = None,
-        min_market_cap: float | None = None,
-        max_market_cap: float | None = None,
+        market_cap_categories: list[str] | None = None,
         only_primary_listing: bool = True,
         include_delisted: bool = False,
         limit: int = 10_000,
@@ -143,12 +142,47 @@ def build_server(provider: MarketDataProvider | None = None, settings: Settings 
             exchange=exchange,
             sector=sector,
             industry=industry,
-            min_market_cap=min_market_cap,
-            max_market_cap=max_market_cap,
+            market_cap_categories=market_cap_categories,
             only_primary_listing=only_primary_listing,
             include_delisted=include_delisted,
             limit=limit,
         )
+
+    @server.tool(name="aset_yfinance_screen")
+    def yfinance_screen(
+        region: str | None = None,
+        sectors: list[str] | None = None,
+        exchanges: list[str] | None = None,
+        min_market_cap: float | None = None,
+        max_market_cap: float | None = None,
+        min_revenue_growth: float | None = None,
+        min_income_growth: float | None = None,
+        min_roe: float | None = None,
+        max_pe: float | None = None,
+        min_average_volume: float | None = None,
+        min_price: float | None = None,
+        size: int = 250,
+        max_results: int = 1000,
+    ) -> dict[str, Any]:
+        """Run Yahoo native fast equity screening."""
+        from .source_adapters import screen_yfinance_equities
+        if size < 1 or size > 250:
+            raise ToolError("size must be between 1 and 250")
+        if max_results < 1 or max_results > 2500:
+            raise ToolError("max_results must be between 1 and 2500")
+        return screen_yfinance_equities(
+            region=region, sectors=sectors, exchanges=exchanges,
+            min_market_cap=min_market_cap, max_market_cap=max_market_cap,
+            min_revenue_growth=min_revenue_growth, min_income_growth=min_income_growth,
+            min_roe=min_roe, max_pe=max_pe, min_average_volume=min_average_volume,
+            min_price=min_price, size=size, max_results=max_results,
+        )
+
+    @server.tool(name="aset_openbb_coverage")
+    def openbb_coverage() -> dict[str, Any]:
+        """Inspect installed OpenBB V5 provider coverage before using it."""
+        from .source_adapters import fetch_openbb_coverage
+        return fetch_openbb_coverage()
 
     @server.tool(name="aset_calculate_metrics")
     def calculate_metrics(symbol: str, start: date, end: date) -> dict[str, Any]:
