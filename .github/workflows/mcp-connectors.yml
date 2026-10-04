@@ -7,14 +7,20 @@ on:
       - main
     paths:
       - "apps/live-signaldesk/mcp_server.py"
+      - "apps/live-signaldesk/agent_engine.py"
+      - "apps/live-signaldesk/test_agent_engine.py"
       - "apps/live-signaldesk/requirements-mcp.txt"
       - "integrations/**"
+      - "agents/**"
       - ".github/workflows/mcp-connectors.yml"
   pull_request:
     paths:
       - "apps/live-signaldesk/mcp_server.py"
+      - "apps/live-signaldesk/agent_engine.py"
+      - "apps/live-signaldesk/test_agent_engine.py"
       - "apps/live-signaldesk/requirements-mcp.txt"
       - "integrations/**"
+      - "agents/**"
       - ".github/workflows/mcp-connectors.yml"
 
 permissions:
@@ -31,7 +37,21 @@ jobs:
       - name: Install MCP runtime
         run: pip install -r apps/live-signaldesk/requirements-mcp.txt
       - name: Compile
-        run: python -m compileall apps/live-signaldesk/mcp_server.py integrations/claude-mcpb/server/main.py
+        run: python -m compileall apps/live-signaldesk/mcp_server.py apps/live-signaldesk/agent_engine.py integrations/claude-mcpb/server/main.py
       - name: Import
         working-directory: apps/live-signaldesk
         run: python -c "import mcp_server; print(mcp_server.SERVER_NAME)"
+      - name: Unit tests
+        working-directory: apps/live-signaldesk
+        run: python -m unittest -v test_agent_engine.py
+      - name: Manifest smoke test
+        run: python - <<'PY'
+        import pathlib
+        import yaml
+
+        manifest = yaml.safe_load(pathlib.Path("agents/multibagger/manifest.yaml").read_text())
+        assert manifest["transport"] == "MCP"
+        assert "screen_universe" in manifest["core_tools"]
+        assert set(manifest["hosts"]) == {"chatgpt", "claude", "manus"}
+        print("Agent manifest smoke test passed")
+        PY
