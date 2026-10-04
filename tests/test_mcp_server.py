@@ -22,6 +22,9 @@ def test_mcp_exposes_read_only_research_tools() -> None:
         "aset_route_dataset",
         "aset_source_health",
         "aset_filter_universe",
+        "aset_yfinance_screen",
+        "aset_openbb_coverage",
+        "aset_auto_multibagger_screen",
     }
 
     result = cast(
@@ -59,6 +62,13 @@ def test_mcp_can_route_dataset_without_live_provider() -> None:
     assert payload["request"]["kind"] == "universe"
     assert payload["request"]["scale"] == "xlarge"
     assert payload["policy"]
+
+
+def test_mcp_auto_multibagger_tool_is_exposed() -> None:
+    server = build_server()
+    tools = asyncio.run(server.list_tools())
+    names = {tool.name for tool in tools}
+    assert "aset_auto_multibagger_screen" in names
 
 
 def test_mcp_metrics_include_provenance() -> None:
