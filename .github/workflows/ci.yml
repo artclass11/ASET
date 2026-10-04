@@ -5,11 +5,13 @@ on:
     paths:
       - "stock_analyzer/**"
       - "tests/**"
+      - "pyproject.toml"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
       - "stock_analyzer/**"
       - "tests/**"
+      - "pyproject.toml"
       - ".github/workflows/ci.yml"
 
 permissions:
@@ -23,13 +25,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install test dependencies
+          cache: pip
+      - name: Install package and quality tooling
         run: |
-          python -m pip install --upgrade pip
-          pip install fastapi httpx pydantic pytest pytest-asyncio ruff
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e ".[dev]"
       - name: Compile
         run: python -m compileall stock_analyzer tests
       - name: Tests
         run: python -m pytest -q tests
       - name: Lint
         run: ruff check stock_analyzer tests
+      - name: Format check
+        run: ruff format --check stock_analyzer tests
+      - name: Type check
+        run: mypy stock_analyzer tests
+      - name: Security scan
+        run: bandit -q -r stock_analyzer
+      - name: Dependency audit
+        run: pip-audit --skip-editable
