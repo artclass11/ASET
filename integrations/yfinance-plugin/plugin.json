@@ -1,0 +1,24 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "aset-yfinance-agent",
+  "version": "0.1.0",
+  "description": "Read-only Yahoo Finance market and company research powered by yfinance.",
+  "author": {"name": "Amor Research Tools"},
+  "homepage": "https://github.com/artclass11/ASET/tree/main/integrations/yfinance-plugin",
+  "repository": "https://github.com/artclass11/ASET",
+  "license": "MIT",
+  "keywords": ["finance", "stocks", "yfinance", "yahoo-finance", "market-data", "equity-research"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "ASET Yahoo Finance",
+        "shortDescription": "Live Yahoo Finance research",
+        "longDescription": "Read-only stock quotes, price history, company information, financial statements, analyst data, options, corporate actions and news through a yfinance-backed MCP server.",
+        "developerName": "Amor Research Tools",
+        "category": "Finance",
+        "capabilities": ["Search", "Interactive"],
+        "defaultPrompt": "Use ASET Yahoo Finance for the latest available Yahoo Finance data. Always report the symbol, provider, fetched time, relevant period and any data limitations."
+      }
+    }
+  }
+}
