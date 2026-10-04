@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
 
 import httpx
@@ -43,6 +44,8 @@ async def api_get(path: str) -> dict[str, Any]:
 async def analyze_stock(symbol: str, entitlement: str = "") -> dict[str, Any]:
     """Analyze one public-company ticker. entitlement may be realtime or delayed."""
     normalized = symbol.strip().upper()
+    if not re.fullmatch(r"[A-Z0-9.-]{1,16}", normalized):
+        raise ValueError("symbol must be 1-16 alphanumeric characters, dots, or hyphens")
     if entitlement not in ("", "realtime", "delayed"):
         raise ValueError("entitlement must be empty, realtime, or delayed")
     suffix = f"?entitlement={entitlement}" if entitlement else ""
@@ -83,7 +86,7 @@ def main() -> None:
     if transport == "streamable-http":
         mcp.run(
             transport="streamable-http",
-            host=os.getenv("MCP_HOST", "0.0.0.0"),
+            host=os.getenv("MCP_HOST", "127.0.0.1"),
             port=int(os.getenv("MCP_PORT", "8100")),
             streamable_http_path=os.getenv("MCP_PATH", "/mcp"),
             json_response=True,
