@@ -437,8 +437,6 @@ def route(request: DatasetRequest) -> dict[str, Any]:
         plan.append(primary | {"role": "primary"})
         for candidate in ready[1:3]:
             plan.append(candidate | {"role": "fallback_or_crosscheck"})
-    else:
-        plan = candidates[:3]
 
     return {
         "request": {
@@ -450,6 +448,8 @@ def route(request: DatasetRequest) -> dict[str, Any]:
         },
         "selected": plan,
         "all_ranked_candidates": candidates[:10],
+        "selection_status": "ready" if plan else "no_ready_source",
+        "install_or_configuration_candidates": candidates[:5] if not plan else [],
         "policy": [
             "Never use a source that is unavailable or missing required credentials.",
             "Prefer bulk-capable sources for large universes.",
