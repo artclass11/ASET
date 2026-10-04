@@ -21,6 +21,7 @@ dependencies = [
 [project.scripts]
 stock-research = "stock_analyzer:cli"
 aset-mcp = "stock_analyzer.mcp_server:main"
+aset-dataset = "stock_analyzer.dataset_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["stock_analyzer*"]
