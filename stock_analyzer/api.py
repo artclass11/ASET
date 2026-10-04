@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .config import Settings
-from .providers import MarketDataProvider, make_fixture_provider
+from .providers import MarketDataProvider, make_provider_from_env
 
 
 class PriceResponse(BaseModel):
@@ -42,7 +42,7 @@ def _error(code: str, message: str, request_id: str, status: int) -> JSONRespons
 
 
 def create_app(provider: MarketDataProvider | None = None, settings: Settings | None = None) -> FastAPI:
-    provider = provider or make_fixture_provider()
+    provider = provider or make_provider_from_env()
     settings = settings or Settings.from_env()
     app = FastAPI(title=settings.app_name, version="1.0.0")
     app.add_middleware(
