@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "aset": {
+      "command": "python",
+      "args": ["-m", "stock_analyzer.mcp_server"],
+      "cwd": "/absolute/path/to/ASET",
+      "env": {
+        "ASET_ENVIRONMENT": "development",
+        "ASET_ALLOWED_HOSTS": "127.0.0.1,localhost,testserver",
+        "ASET_ALLOWED_ORIGINS": ""
+      }
+    }
+  }
+}

@@ -51,6 +51,10 @@ Never commit API keys, access tokens, cloud credentials, private datasets or cus
 
 The MIT license permits commercial use, but a sale also requires contributor-ownership confirmation, third-party dependency notices, provider-data rights review, and a written customer agreement. See [docs/COMMERCIAL_READINESS.md](docs/COMMERCIAL_READINESS.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). These documents are checklists, not legal advice.
 
+## Assistant connectors
+
+ASET includes a read-only MCP server that can connect the same research tools to ChatGPT, Claude, Manus, and other MCP-compatible hosts. See [docs/CONNECTORS.md](docs/CONNECTORS.md) for local stdio, remote HTTPS, and configuration examples.
+
 ## Contributing
 
 Focused pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), the issue templates and the pull-request checklist.

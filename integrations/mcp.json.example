@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "aset": {
+      "command": "python",
+      "args": ["-m", "stock_analyzer.mcp_server"],
+      "env": {
+        "ASET_ENVIRONMENT": "development"
+      }
+    }
+  }
+}
