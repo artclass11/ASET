@@ -14,6 +14,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from .analytics import annualized_volatility, maximum_drawdown, simple_return
 from .config import Settings
 from .providers import MarketDataProvider, make_fixture_provider
+from .data_router import all_source_health, filter_finance_database, route_task
 
 
 def _security_payload(security: Any) -> dict[str, Any]:
@@ -89,6 +90,65 @@ def build_server(provider: MarketDataProvider | None = None, settings: Settings 
             raise ToolError(f"limit must be between 1 and {selected_settings.max_price_points}")
         observations = selected_provider.get_prices(symbol.strip().upper(), start, end)
         return [_price_payload(item) for item in observations[:limit]]
+
+
+    @server.tool(name="aset_route_dataset")
+    def route_dataset(
+        task: str,
+        region: str = "global",
+        scale: str = "medium",
+        stage: str = "screen",
+    ) -> dict[str, Any]:
+        """Automatically choose the best available ASET/open-source data project for a task."""
+        if not task.strip():
+            raise ToolError("task is required")
+        if scale not in ("small", "medium", "large", "xlarge"):
+            raise ToolError("scale must be small, medium, large, or xlarge")
+        valid_stages = {
+            "development",
+            "discover",
+            "screen",
+            "deep_dive",
+            "verification",
+            "macro",
+            "backtest",
+            "optimization",
+        }
+        if stage not in valid_stages:
+            raise ToolError("unsupported stage")
+        return route_task(task, region=region, scale=scale, stage=stage)
+
+    @server.tool(name="aset_source_health")
+    def source_health() -> list[dict[str, Any]]:
+        """Return install/configuration health for every registered data project."""
+        return all_source_health()
+
+    @server.tool(name="aset_filter_universe")
+    def filter_universe(
+        country: str | None = None,
+        exchange: str | None = None,
+        sector: str | None = None,
+        industry: str | None = None,
+        min_market_cap: float | None = None,
+        max_market_cap: float | None = None,
+        only_primary_listing: bool = True,
+        include_delisted: bool = False,
+        limit: int = 10_000,
+    ) -> dict[str, Any]:
+        """Filter the broad FinanceDatabase equity universe before live-data screening."""
+        if limit < 1 or limit > 100_000:
+            raise ToolError("limit must be between 1 and 100000")
+        return filter_finance_database(
+            country=country,
+            exchange=exchange,
+            sector=sector,
+            industry=industry,
+            min_market_cap=min_market_cap,
+            max_market_cap=max_market_cap,
+            only_primary_listing=only_primary_listing,
+            include_delisted=include_delisted,
+            limit=limit,
+        )
 
     @server.tool(name="aset_calculate_metrics")
     def calculate_metrics(symbol: str, start: date, end: date) -> dict[str, Any]:
