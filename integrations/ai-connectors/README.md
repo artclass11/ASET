@@ -133,3 +133,9 @@ The connector ID is created by Manus for the authorized account and is intention
 - MCP Python SDK: https://github.com/modelcontextprotocol/python-sdk
 - Manus connectors: https://open.manus.im/docs/v2/connectors
 - Manus Open App: https://open.manus.im/docs/v2/open-app
+
+## Automatic research pipeline
+
+The preferred large-universe tool is aset_auto_multibagger_screen. It returns a staged audit containing source routing, universe size, fast-screen results, bounded enrichment, failures and the research-priority shortlist.
+
+Hosts should not individually call a slow per-ticker fundamentals tool across thousands of symbols. Screen first, enrich the shortlist second, verify the strongest names third.
