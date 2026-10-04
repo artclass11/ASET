@@ -214,6 +214,7 @@ def fetch_yfinance_fundamentals_many(
     symbols: list[str],
     *,
     max_workers: int = 8,
+    include_estimates: bool = False,
 ) -> dict[str, Any]:
     """Enrich only a bounded shortlist in parallel."""
     clean = list(dict.fromkeys(str(x).strip().upper() for x in symbols if str(x).strip()))
@@ -224,7 +225,7 @@ def fetch_yfinance_fundamentals_many(
     failures: list[dict[str, str]] = []
 
     def one(symbol: str) -> dict[str, Any]:
-        return fetch_yfinance_fundamentals(symbol)
+        return fetch_yfinance_fundamentals(symbol, include_estimates=include_estimates)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(one, symbol): symbol for symbol in clean}
@@ -304,7 +305,7 @@ def screen_yfinance_equities(
     if min_price is not None:
         operands.append(EquityQuery("gte", ["intradayprice", float(min_price)]))
 
-    query = EquityQuery("and", operands) if operands else EquityQuery("and", [])
+    query = EquityQuery("and", operands) if operands else EquityQuery("gte", ["intradayprice", 0])
     page_size = max(1, min(int(size), 250))
     cap = max(page_size, min(int(max_results), 2500))
     rows: list[dict[str, Any]] = []
