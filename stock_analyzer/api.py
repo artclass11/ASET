@@ -42,8 +42,8 @@ def _error(code: str, message: str, request_id: str, status: int) -> JSONRespons
 
 
 def create_app(provider: MarketDataProvider | None = None, settings: Settings | None = None) -> FastAPI:
-    provider = provider or make_provider_from_env()
     settings = settings or Settings.from_env()
+    provider = provider or make_provider_from_env(settings.provider)
     app = FastAPI(title=settings.app_name, version="1.0.0")
     app.add_middleware(
         CORSMiddleware,
