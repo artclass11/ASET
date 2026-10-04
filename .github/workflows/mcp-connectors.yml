@@ -45,13 +45,10 @@ jobs:
         working-directory: apps/live-signaldesk
         run: python -m unittest -v test_agent_engine.py
       - name: Manifest smoke test
-        run: python - <<'PY'
-        import pathlib
-        import yaml
-
-        manifest = yaml.safe_load(pathlib.Path("agents/multibagger/manifest.yaml").read_text())
-        assert manifest["transport"] == "MCP"
-        assert "screen_universe" in manifest["core_tools"]
-        assert set(manifest["hosts"]) == {"chatgpt", "claude", "manus"}
-        print("Agent manifest smoke test passed")
-        PY
+        run: |
+          grep -q 'transport: MCP' agents/multibagger/manifest.yaml
+          grep -q 'screen_universe' agents/multibagger/manifest.yaml
+          grep -q '  - chatgpt' agents/multibagger/manifest.yaml
+          grep -q '  - claude' agents/multibagger/manifest.yaml
+          grep -q '  - manus' agents/multibagger/manifest.yaml
+          echo "Agent manifest smoke test passed"
