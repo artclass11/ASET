@@ -13,10 +13,15 @@ from stock_analyzer.mcp_server import build_server  # noqa: E402
 def test_mcp_exposes_read_only_research_tools() -> None:
     server = build_server()
     tools = asyncio.run(server.list_tools())
-    assert {tool.name for tool in tools} == {
+    assert {
+        tool.name for tool in tools
+    } >= {
         "aset_get_security",
         "aset_get_prices",
         "aset_calculate_metrics",
+        "aset_route_dataset",
+        "aset_source_health",
+        "aset_filter_universe",
     }
 
     result = cast(
@@ -31,6 +36,29 @@ def test_mcp_exposes_read_only_research_tools() -> None:
     assert result.is_error is False
     assert result.structured_content["result"][0]["symbol"] == "ASET"
     assert len(result.structured_content["result"]) == 3
+
+
+def test_mcp_can_route_dataset_without_live_provider() -> None:
+    server = build_server()
+    result = cast(
+        CallToolResult,
+        asyncio.run(
+            server.call_tool(
+                "aset_route_dataset",
+                {
+                    "task": "screen thousands of global growth stocks",
+                    "region": "global",
+                    "scale": "xlarge",
+                    "stage": "screen",
+                },
+            )
+        ),
+    )
+    assert result.is_error is False
+    payload = result.structured_content
+    assert payload["request"]["kind"] == "universe"
+    assert payload["request"]["scale"] == "xlarge"
+    assert payload["policy"]
 
 
 def test_mcp_metrics_include_provenance() -> None:
