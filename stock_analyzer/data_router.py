@@ -24,8 +24,6 @@ from dataclasses import asdict, dataclass
 from enum import StrEnum
 from typing import Any
 
-from .providers import MarketDataProvider
-
 
 class DatasetKind(StrEnum):
     UNIVERSE = "universe"
