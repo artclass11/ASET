@@ -21,8 +21,8 @@ services:
 
   mcp:
     build:
-      context: .
-      dockerfile: mcp.Dockerfile
+      context: ../..
+      dockerfile: apps/live-signaldesk/mcp.Dockerfile
     container_name: aset-signaldesk-mcp
     restart: unless-stopped
     environment:
