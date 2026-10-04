@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/mcpb/main/schemas/mcpb-manifest-v0.4.schema.json",
+  "manifest_version": "0.4",
+  "name": "aset-signaldesk",
+  "display_name": "ASET SignalDesk",
+  "version": "0.1.0",
+  "description": "Provider-backed public-equity research tools for Claude Desktop.",
+  "long_description": "Connect Claude Desktop to ASET SignalDesk for provider-backed quote and fundamentals research, five-year income history, data-quality flags and provenance metadata.",
+  "author": {"name": "Amor Research Tools", "url": "https://github.com/artclass11/ASET"},
+  "repository": {"type": "git", "url": "https://github.com/artclass11/ASET"},
+  "documentation": "https://github.com/artclass11/ASET/tree/main/integrations/ai-connectors/claude",
+  "support": "https://github.com/artclass11/ASET/issues",
+  "server": {
+    "type": "uv",
+    "entry_point": "server/main.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "server/main.py"]
+    }
+  },
+  "tools": [
+    {"name":"analyze_stock","description":"Analyze a public-company ticker with provider-backed quote and fundamentals."},
+    {"name":"check_signaldesk","description":"Check ASET SignalDesk API health."},
+    {"name":"get_signaldesk_config","description":"Read non-secret ASET SignalDesk configuration."},
+    {"name":"research_prompt","description":"Generate a reusable ASET research prompt."}
+  ],
+  "keywords": ["stocks","equities","research","finance","mcp"],
+  "license": "MIT",
+  "compatibility": {"platforms":["win32","darwin","linux"],"runtimes":{"python":">=3.10 <4"}}
+}
