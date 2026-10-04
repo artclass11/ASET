@@ -34,8 +34,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install MCP runtime
-        run: pip install -r apps/live-signaldesk/requirements-mcp.txt
+      - name: Install ASET core and MCP runtime
+        run: |
+          python -m pip install -e .
+          python -m pip install -r apps/live-signaldesk/requirements-mcp.txt
       - name: Compile
         run: python -m compileall apps/live-signaldesk/mcp_server.py apps/live-signaldesk/agent_engine.py integrations/claude-mcpb/server/main.py
       - name: Import
