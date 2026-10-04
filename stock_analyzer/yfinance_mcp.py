@@ -26,7 +26,7 @@ SERVER_NAME = "ASET Yahoo Finance"
 MAX_HISTORY_ROWS = 2000
 MAX_TABLE_ROWS = 250
 MAX_COMPARE_SYMBOLS = 10
-DEFAULT_TIMEOUT = float(os.getenv("YFINANCE_MCP_TIMEOUT_SECONDS", "30"))
+DEFAULT_TIMEOUT = float(os.getenv("YFINANCE_MCP_TIMEOUT_SECONDS", "8"))
 
 mcp = MCPServer(
     SERVER_NAME,
@@ -168,8 +168,10 @@ async def _ticker(symbol: str) -> yf.Ticker:
 )
 async def get_quote(symbol: str) -> dict[str, Any]:
     ticker = await _ticker(symbol)
-    fast = await asyncio.to_thread(ticker.get_fast_info)
-    info = await asyncio.to_thread(ticker.get_info)
+    fast, info = await asyncio.gather(
+        asyncio.to_thread(ticker.get_fast_info),
+        asyncio.to_thread(ticker.get_info),
+    )
     return _quote_payload(_symbol(symbol), fast, info)
 
 
@@ -455,6 +457,8 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=int(os.getenv("MCP_PORT", "8101")))
     args = parser.parse_args()
 
+    if not 1 <= args.port <= 65535:
+        parser.error("port must be between 1 and 65535")
     if args.transport == "stdio":
         mcp.run()
         return
