@@ -10,6 +10,8 @@ from mcp.server.mcpserver import MCPServer
 from mcp.types import ToolAnnotations
 
 from agent_engine import compare_payloads, rank_multibagger_candidates
+from stock_analyzer.data_router import all_source_health, route_workflow
+from stock_analyzer.research_pipeline import MultibaggerPipelineConfig, run_multibagger_pipeline
 
 SERVER_NAME = "ASET SignalDesk"
 API_BASE = os.getenv("SIGNALDESK_API_BASE", "http://127.0.0.1:8000").rstrip("/")
@@ -130,6 +132,85 @@ async def check_signaldesk() -> dict[str, Any]:
 async def get_signaldesk_config() -> dict[str, Any]:
     """Return safe configuration metadata; API secrets are never returned."""
     return await api_get("/api/v1/config")
+
+
+@mcp.tool(
+    title="Route research dataset",
+    description=(
+        "Choose the best available ASET/open-source project for a dataset or "
+        "research task based on geography, scale, stage, install health and credentials."
+    ),
+    annotations=ToolAnnotations(read_only_hint=True, idempotent_hint=True),
+)
+async def route_research_dataset(
+    task: str,
+    region: str = "global",
+    scale: str = "medium",
+    stage: str = "screen",
+) -> dict[str, Any]:
+    if not task.strip():
+        raise ValueError("task is required")
+    return route_workflow(task, region=region, scale=scale, stage=stage)
+
+
+@mcp.tool(
+    title="ASET source health",
+    description="Report which registered open-source data/research projects are installed and configured.",
+    annotations=ToolAnnotations(read_only_hint=True, idempotent_hint=True),
+)
+async def aset_source_health() -> dict[str, Any]:
+    return {"sources": all_source_health()}
+
+
+@mcp.tool(
+    title="Automatic multibagger screen",
+    description=(
+        "Run the staged ASET pipeline: broad universe discovery, fast numeric filtering, "
+        "bounded deep fundamentals, and optional primary filing verification."
+    ),
+    annotations=ToolAnnotations(read_only_hint=True, idempotent_hint=True),
+)
+async def auto_multibagger_screen(
+    region: str = "global",
+    country: str = "",
+    exchange: str = "",
+    sector: str = "",
+    industry: str = "",
+    min_market_cap: float | None = None,
+    max_market_cap: float | None = None,
+    min_revenue_growth: float | None = 10.0,
+    min_income_growth: float | None = 10.0,
+    min_roe: float | None = 10.0,
+    max_pe: float | None = 60.0,
+    universe_limit: int = 20_000,
+    fast_screen_limit: int = 1_000,
+    fundamentals_limit: int = 25,
+    top_k: int = 20,
+    max_workers: int = 6,
+    verify_us_filings: int = 0,
+) -> dict[str, Any]:
+    config = MultibaggerPipelineConfig(
+        region=region.strip() or "global",
+        universe_limit=max(1, min(int(universe_limit), 100_000)),
+        fast_screen_limit=max(1, min(int(fast_screen_limit), 2_500)),
+        fundamentals_limit=max(1, min(int(fundamentals_limit), 100)),
+        top_k=max(1, min(int(top_k), 100)),
+        max_workers=max(1, min(int(max_workers), 16)),
+        verify_us_filings=max(0, min(int(verify_us_filings), 10)),
+    )
+    return run_multibagger_pipeline(
+        config=config,
+        country=country.strip() or None,
+        exchange=exchange.strip() or None,
+        sector=sector.strip() or None,
+        industry=industry.strip() or None,
+        min_market_cap=min_market_cap,
+        max_market_cap=max_market_cap,
+        min_revenue_growth=min_revenue_growth,
+        min_income_growth=min_income_growth,
+        min_roe=min_roe,
+        max_pe=max_pe,
+    )
 
 
 @mcp.tool(
