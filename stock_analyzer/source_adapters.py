@@ -97,9 +97,14 @@ def fetch_yfinance_prices(
         trading_date = getattr(timestamp, "date", lambda: timestamp)()
         if multi:
             for symbol in clean:
-                sub = row[symbol] if symbol in row.index.get_level_values(-1) else None
-                if sub is None and symbol in row.index.get_level_values(0):
-                    sub = row[symbol]
+                sub = None
+                try:
+                    sub = row.xs(symbol, level=-1)
+                except (KeyError, IndexError):
+                    try:
+                        sub = row.xs(symbol, level=0)
+                    except (KeyError, IndexError):
+                        sub = None
                 if sub is None:
                     continue
                 close = sub.get("Close") if hasattr(sub, "get") else None
