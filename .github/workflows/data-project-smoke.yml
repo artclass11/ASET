@@ -33,6 +33,18 @@ jobs:
           - extra: openbb
             package: openbb
             import: openbb
+          - extra: openbb-us-market
+            package: openbb-nasdaq
+            import: openbb_nasdaq
+          - extra: openbb-us-sec
+            package: openbb-sec
+            import: openbb_sec
+          - extra: openbb-macro
+            package: openbb-fred
+            import: openbb_fred
+          - extra: openbb-canada
+            package: openbb-tmx
+            import: openbb_tmx
           - extra: quant-vectorized
             package: vectorbt
             import: vectorbt
