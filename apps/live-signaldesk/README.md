@@ -112,3 +112,12 @@ Direct message: https://ig.me/m/amormagics/
 ## Disclaimer
 
 Market data may be delayed or entitlement-dependent. Validate material figures against authoritative filings and provider documentation. Multibagger radar is a screening workflow, not a forecast or investment advice.
+### MCP data stack
+
+The MCP Docker image installs the ASET universe, price and SEC extras by default so the automatic multibagger pipeline has a working global screening path out of the box.
+
+To change the installed optional data set, override the Docker build argument:
+
+ASET_DATA_EXTRAS=universe,prices,china,sec,macro
+
+OpenBB provider extensions remain separate optional extras because OpenBB 5.x is a provider-extension architecture.
