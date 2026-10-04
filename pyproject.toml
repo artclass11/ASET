@@ -57,6 +57,27 @@ macro = [
 openbb = [
   "openbb==5.0.0",
 ]
+openbb-us-market = [
+  "openbb==5.0.0",
+  "openbb-nasdaq==1.6.3",
+]
+openbb-us-sec = [
+  "openbb==5.0.0",
+  "openbb-sec==1.6.2",
+]
+openbb-macro = [
+  "openbb==5.0.0",
+  "openbb-fred==2.0.0",
+]
+openbb-canada = [
+  "openbb==5.0.0",
+  "openbb-tmx==2.0.0",
+]
+openbb-data = [
+  "openbb==5.0.0",
+  "openbb-fred==2.0.0",
+  "openbb-tmx==2.0.0",
+]
 quant-vectorized = [
   "vectorbt==1.1.1",
 ]
