@@ -71,6 +71,30 @@ def test_mcp_auto_multibagger_tool_is_exposed() -> None:
     assert "aset_auto_multibagger_screen" in names
 
 
+def test_mcp_auto_multibagger_tool_uses_pipeline(monkeypatch) -> None:
+    import stock_analyzer.research_pipeline as pipeline
+
+    expected = {"status": "ok", "candidates": [{"symbol": "TEST"}]}
+    monkeypatch.setattr(pipeline, "run_multibagger_pipeline", lambda **kwargs: expected)
+
+    server = build_server()
+    result = cast(
+        CallToolResult,
+        asyncio.run(
+            server.call_tool(
+                "aset_auto_multibagger_screen",
+                {
+                    "region": "global",
+                    "top_k": 5,
+                    "fundamentals_limit": 10,
+                },
+            )
+        ),
+    )
+    assert result.is_error is False
+    assert result.structured_content["result"] == expected
+
+
 def test_mcp_metrics_include_provenance() -> None:
     server = build_server()
     result = cast(
