@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aset-research-engine"
 version = "0.4.0"
-description = "Open multi-provider public-equity research, automatic dataset routing and quantitative analytics engine"
+description = "Open multi-provider public-equity research, automatic dataset routing, screening and quantitative analytics engine"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -86,6 +86,12 @@ quant-event = [
 ]
 connectors = [
   "mcp>=2.0,<3",
+]
+yfinance-mcp = [
+  "mcp>=2.0,<3",
+  "pandas>=2.2",
+  "numpy>=2.0",
+  "yfinance==1.7.0",
 ]
 data = [
   "pandas>=2.2",
