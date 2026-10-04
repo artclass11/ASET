@@ -41,12 +41,13 @@ def test_router_prefers_installed_provider(monkeypatch) -> None:
 
     monkeypatch.setattr("stock_analyzer.data_router.installed", fake_installed)
     result = route_task("screen a stock universe", region="global", scale="large", stage="screen")
-    assert result["selected"][0]["source_id"] == "finance_database"
+    universe_stage = next(item for item in result["workflow"] if item["stage"] == "universe")
+    assert universe_stage["request"]["selected"][0]["source_id"] == "finance_database"
 
 
 def test_source_health_has_all_expected_projects() -> None:
     ids = {row["source_id"] for row in all_source_health()}
-    assert {"finance_database", "yfinance", "akshare", "edgartools", "openbb", "vectorbt", "backtrader", "lean"} <= ids
+    assert {"finance_database", "yfinance_prices", "yfinance_screener", "akshare", "edgartools", "openbb", "openbb_nasdaq", "openbb_sec", "openbb_fred", "openbb_tmx", "vectorbt", "backtrader", "lean"} <= ids
 
 
 def test_no_fake_live_fallback() -> None:
