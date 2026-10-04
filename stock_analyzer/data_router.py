@@ -134,12 +134,53 @@ SOURCE_REGISTRY: tuple[SourceSpec, ...] = (
     SourceSpec(
         "openbb",
         "OpenBB Platform",
-        (DatasetKind.UNIVERSE, DatasetKind.PRICES, DatasetKind.FUNDAMENTALS, DatasetKind.FILINGS, DatasetKind.MACRO),
+        (),
+        ("global",),
+        False,
+        ("discover",),
+        "openbb",
+        notes="Apache-2.0 orchestration/runtime; concrete provider extensions are selected separately.",
+    ),
+    SourceSpec(
+        "openbb_nasdaq",
+        "OpenBB Nasdaq",
+        (DatasetKind.PRICES, DatasetKind.UNIVERSE),
+        ("united_states",),
+        True,
+        ("discover", "screen"),
+        "openbb_nasdaq",
+        notes="Concrete Nasdaq provider extension; use only when installed and compatible with the deployment's license policy.",
+    ),
+    SourceSpec(
+        "openbb_sec",
+        "OpenBB SEC",
+        (DatasetKind.FUNDAMENTALS, DatasetKind.FILINGS),
+        ("united_states",),
+        True,
+        ("deep_dive", "verification"),
+        "openbb_sec",
+        notes="Concrete SEC provider extension for U.S. issuers.",
+    ),
+    SourceSpec(
+        "openbb_fred",
+        "OpenBB FRED",
+        (DatasetKind.MACRO,),
         ("global",),
         True,
-        ("discover", "screen", "deep_dive", "verification"),
-        "openbb",
-        notes="Optional aggregation layer; the installed provider packages determine actual coverage.",
+        ("macro",),
+        "openbb_fred",
+        credential_env="FRED_API_KEY",
+        notes="Concrete FRED provider extension; requires FRED credentials.",
+    ),
+    SourceSpec(
+        "openbb_tmx",
+        "OpenBB TMX",
+        (DatasetKind.PRICES, DatasetKind.FUNDAMENTALS),
+        ("canada",),
+        True,
+        ("screen", "deep_dive"),
+        "openbb_tmx",
+        notes="Concrete TMX provider extension for Canadian markets.",
     ),
     SourceSpec(
         "vectorbt",
@@ -365,6 +406,9 @@ def _score(spec: SourceSpec, request: DatasetRequest) -> tuple[int, list[str]]:
     if request.kind == DatasetKind.PRICES and spec.source_id in {"openbb_nasdaq", "openbb_tmx"}:
         score += 10
         reasons.append("OpenBB provider-specific market-data route")
+    if request.kind == DatasetKind.FUNDAMENTALS and spec.source_id == "openbb_sec":
+        score += 20
+        reasons.append("OpenBB SEC provider")
     if request.kind == DatasetKind.FUNDAMENTALS and spec.source_id == "yfinance_screener":
         score += 25
         reasons.append("native bulk fundamentals screening")
