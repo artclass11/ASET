@@ -92,7 +92,7 @@ def test_mcp_auto_multibagger_tool_uses_pipeline(monkeypatch) -> None:
         ),
     )
     assert result.is_error is False
-    assert result.structured_content["result"] == expected
+    assert result.structured_content == expected
 
 
 def test_mcp_metrics_include_provenance() -> None:
