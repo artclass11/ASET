@@ -5,14 +5,18 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MCP_TRANSPORT=streamable-http \
     MCP_HOST=0.0.0.0 \
     MCP_PORT=8100 \
-    MCP_PATH=/mcp
+    MCP_PATH=/mcp \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
-COPY requirements-mcp.txt .
-RUN pip install --no-cache-dir -r requirements-mcp.txt
+COPY pyproject.toml README.md ./
+COPY stock_analyzer ./stock_analyzer
+COPY apps/live-signaldesk/requirements-mcp.txt ./requirements-mcp.txt
+COPY apps/live-signaldesk/mcp_server.py ./mcp_server.py
 
-COPY agent_engine.py mcp_server.py .
+RUN pip install --no-cache-dir . \
+    && pip install --no-cache-dir -r requirements-mcp.txt
 
 USER 65532:65532
 EXPOSE 8100
