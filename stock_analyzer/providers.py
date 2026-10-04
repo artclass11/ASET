@@ -153,9 +153,9 @@ def make_fixture_provider() -> FixtureMarketDataProvider:
     return FixtureMarketDataProvider({"ASET": security}, {"ASET": prices})
 
 
-def make_provider_from_env():
-    """Select fixture or a real provider from ASET_PROVIDER without hidden fallback."""
-    provider = os.getenv("ASET_PROVIDER", "fixture").strip().lower()
+def make_provider_from_env(provider: str | None = None):
+    """Select fixture or a real provider without a hidden live-to-fixture fallback."""
+    provider = (provider if provider is not None else os.getenv("ASET_PROVIDER", "fixture")).strip().lower()
     if provider in ("", "fixture", "demo", "development"):
         return make_fixture_provider()
     if provider == "yfinance":
