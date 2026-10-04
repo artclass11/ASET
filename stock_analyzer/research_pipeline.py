@@ -13,6 +13,7 @@ from .data_router import route_workflow
 from .multibagger_scoring import rank_multibagger_candidates
 from .source_adapters import (
     DataSourceUnavailable,
+    fetch_akshare_a_share_universe,
     fetch_sec_company_filing,
     fetch_universe_financedatabase,
     fetch_yfinance_fundamentals_many,
@@ -193,19 +194,36 @@ def run_multibagger_pipeline(
 
     # Stage 1: broad, cheap metadata universe.
     universe_result: dict[str, Any]
+    universe_plan = next(
+        (item for item in route["workflow"] if item["stage"] == "universe"),
+        None,
+    )
+    universe_source = (
+        universe_plan["request"]["selected"][0]["source_id"]
+        if universe_plan and universe_plan["request"].get("selected")
+        else None
+    )
+
     try:
-        universe_result = fetch_universe_financedatabase(
-            country=country,
-            exchange=exchange,
-            sector=sector,
-            industry=industry,
-            market_cap_categories=market_cap_categories,
-            only_primary_listing=True,
-            include_delisted=False,
-            limit=cfg.universe_limit,
-        )
+        if universe_source == "akshare" and cfg.region.strip().lower() == "china":
+            universe_result = fetch_akshare_a_share_universe(limit=cfg.universe_limit)
+        else:
+            universe_result = fetch_universe_financedatabase(
+                country=country,
+                exchange=exchange,
+                sector=sector,
+                industry=industry,
+                market_cap_categories=market_cap_categories,
+                only_primary_listing=True,
+                include_delisted=False,
+                limit=cfg.universe_limit,
+            )
+            if universe_source and universe_source != "finance_database":
+                audit["warnings"].append(
+                    f"Router preferred {universe_source} for universe discovery, but the current pipeline falls back to FinanceDatabase for compatibility."
+                )
     except (DataSourceUnavailable, ValueError) as exc:
-        universe_result = {"status": "unavailable", "error": str(exc)}
+        universe_result = {"status": "unavailable", "error": str(exc), "source": universe_source or "router"}
 
     audit["stages"].append(
         {
@@ -219,7 +237,14 @@ def run_multibagger_pipeline(
     universe_records = universe_result.get("records") or []
     universe_symbols = []
     for row in universe_records:
-        symbol = str(row.get("symbol") or "").strip().upper()
+        symbol = str(
+            row.get("symbol")
+            or row.get("ticker")
+            or row.get("Ticker")
+            or row.get("Code")
+            or row.get("代码")
+            or ""
+        ).strip().upper()
         if symbol and symbol not in universe_symbols:
             universe_symbols.append(symbol)
 
