@@ -1,0 +1,6 @@
+[project]
+name = "aset-signaldesk-mcp-bundle"
+version = "0.1.0"
+description = "ASET SignalDesk MCP Bundle for Claude Desktop"
+requires-python = ">=3.10,<4"
+dependencies = ["mcp==2.0.0","httpx>=0.28"]

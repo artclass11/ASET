@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "aset-signaldesk",
+  "version": "0.1.0",
+  "description": "Use ASET SignalDesk from AI chat to analyze provider-backed public-equity data.",
+  "author": { "name": "Amor Research Tools" },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "ASET SignalDesk",
+        "shortDescription": "AI stock research tools",
+        "longDescription": "Connect AI chat clients to ASET SignalDesk for provider-backed quote and fundamentals research with provenance and freshness metadata.",
+        "developerName": "Amor Research Tools",
+        "category": "Finance",
+        "capabilities": ["Search", "Interactive"],
+        "defaultPrompt": "Use ASET SignalDesk to analyze the requested ticker using provider-backed data. Never invent missing figures and always show data freshness."
+      }
+    }
+  }
+}

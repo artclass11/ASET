@@ -1,0 +1,34 @@
+{
+  "$schema":"https://schema.tauri.app/config/2",
+  "productName":"ASET SignalDesk",
+  "version":"0.1.0",
+  "identifier":"com.amor.aset.signaldesk",
+  "build":{
+    "beforeDevCommand":"npm run dev -- --host 127.0.0.1",
+    "beforeBuildCommand":"npm run build",
+    "devUrl":"http://127.0.0.1:1420",
+    "frontendDist":"../dist"
+  },
+  "app":{
+    "windows":[{
+      "label":"main",
+      "title":"ASET SignalDesk",
+      "width":1280,
+      "height":820,
+      "minWidth":980,
+      "minHeight":680,
+      "resizable":true,
+      "fullscreen":false,
+      "useHttpsScheme":false
+    }],
+    "security":{
+      "csp":"default-src 'self'; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+    }
+  },
+  "bundle":{
+    "active":true,
+    "targets":["nsis","msi"],
+    "createUpdaterArtifacts":false,
+    "windows":{"webviewInstallMode":{"type":"downloadBootstrapper"}}
+  }
+}
