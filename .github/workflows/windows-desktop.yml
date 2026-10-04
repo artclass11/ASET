@@ -1,0 +1,56 @@
+name: Windows Desktop Build
+
+on:
+  push:
+    branches:
+      - feat/windows-signaldesk
+      - main
+    paths:
+      - "apps/windows-signaldesk/**"
+      - ".github/workflows/windows-desktop.yml"
+      - "apps/live-signaldesk/**"
+  pull_request:
+    paths:
+      - "apps/windows-signaldesk/**"
+      - ".github/workflows/windows-desktop.yml"
+      - "apps/live-signaldesk/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/windows-signaldesk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/windows-signaldesk/package.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Build Windows installers
+        run: npm run tauri build
+
+      - name: Upload Windows installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: aset-signaldesk-windows
+          path: |
+            apps/windows-signaldesk/src-tauri/target/release/bundle/nsis/*.exe
+            apps/windows-signaldesk/src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: error

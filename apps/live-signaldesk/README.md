@@ -43,6 +43,10 @@ Repository: `https://github.com/artclass11/ASET`
 
 Application root: `apps/live-signaldesk`
 
+For the Windows desktop client, allow these origins (or your exact controlled origins) with `SIGNALDESK_CORS_ORIGINS`:
+
+`http://tauri.localhost,http://localhost:1420,http://127.0.0.1:1420`
+
 Set secret:
 
 `ALPHAVANTAGE_API_KEY`

@@ -1,0 +1,37 @@
+name: MCP Connector Validation
+
+on:
+  push:
+    branches:
+      - feat/windows-signaldesk
+      - main
+    paths:
+      - "apps/live-signaldesk/mcp_server.py"
+      - "apps/live-signaldesk/requirements-mcp.txt"
+      - "integrations/**"
+      - ".github/workflows/mcp-connectors.yml"
+  pull_request:
+    paths:
+      - "apps/live-signaldesk/mcp_server.py"
+      - "apps/live-signaldesk/requirements-mcp.txt"
+      - "integrations/**"
+      - ".github/workflows/mcp-connectors.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install MCP runtime
+        run: pip install -r apps/live-signaldesk/requirements-mcp.txt
+      - name: Compile
+        run: python -m compileall apps/live-signaldesk/mcp_server.py integrations/claude-mcpb/server/main.py
+      - name: Import
+        working-directory: apps/live-signaldesk
+        run: python -c "import mcp_server; print(mcp_server.SERVER_NAME)"
