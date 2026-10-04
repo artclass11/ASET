@@ -3,7 +3,8 @@
 from .analytics import MetricResult, annualized_volatility, maximum_drawdown, simple_return
 from .config import Settings, cli
 from .domain import DataQuality, PriceObservation, Provenance, Security
-from .providers import FixtureMarketDataProvider, MarketDataProvider, make_fixture_provider
+from .providers import FixtureMarketDataProvider, MarketDataProvider, YFinanceMarketDataProvider, make_fixture_provider, make_provider_from_env
+from .data_router import DatasetKind, DatasetRequest, route, route_task, route_workflow
 
 try:
     from .api import create_app
@@ -12,8 +13,11 @@ except ImportError:  # pragma: no cover - allows domain-only installations
 
 __all__ = [
     "DataQuality",
+    "DatasetKind",
+    "DatasetRequest",
     "FixtureMarketDataProvider",
     "MarketDataProvider",
+    "YFinanceMarketDataProvider",
     "MetricResult",
     "PriceObservation",
     "Provenance",
@@ -24,5 +28,9 @@ __all__ = [
     "cli",
     "maximum_drawdown",
     "make_fixture_provider",
+    "make_provider_from_env",
+    "route",
+    "route_task",
+    "route_workflow",
     "simple_return",
 ]
