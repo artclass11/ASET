@@ -70,14 +70,24 @@ SOURCE_REGISTRY: tuple[SourceSpec, ...] = (
         notes="Broad instrument metadata and filtering; not a live fundamentals feed.",
     ),
     SourceSpec(
+        "yfinance_prices",
         "yfinance",
-        "yfinance",
-        (DatasetKind.PRICES, DatasetKind.FUNDAMENTALS),
+        (DatasetKind.PRICES,),
         ("global",),
         True,
         ("screen", "deep_dive"),
         "yfinance",
-        notes="Useful broad-market price/fundamental retrieval; validate important fields against primary sources.",
+        notes="Broad batch historical-price retrieval; useful for first-pass price/liquidity signals.",
+    ),
+    SourceSpec(
+        "yfinance_screener",
+        "yfinance",
+        (DatasetKind.UNIVERSE, DatasetKind.FUNDAMENTALS),
+        ("global",),
+        True,
+        ("screen", "deep_dive"),
+        "yfinance",
+        notes="Native Yahoo equity screener; custom queries support growth, valuation, leverage, profitability and liquidity fields; page size is provider-limited.",
     ),
     SourceSpec(
         "akshare",
@@ -182,6 +192,8 @@ KEYWORDS: dict[str, DatasetKind] = {
     "tickers": DatasetKind.UNIVERSE,
     "price": DatasetKind.PRICES,
     "prices": DatasetKind.PRICES,
+    "growth": DatasetKind.FUNDAMENTALS,
+    "quality": DatasetKind.FUNDAMENTALS,
     "quote": DatasetKind.PRICES,
     "fundamental": DatasetKind.FUNDAMENTALS,
     "fundamentals": DatasetKind.FUNDAMENTALS,
@@ -343,9 +355,12 @@ def _score(spec: SourceSpec, request: DatasetRequest) -> tuple[int, list[str]]:
         score += 25
         reasons.append("primary filing/XBRL source")
 
-    if request.kind == DatasetKind.PRICES and spec.source_id == "yfinance":
-        score += 15
-        reasons.append("broad price coverage")
+    if request.kind == DatasetKind.PRICES and spec.source_id == "yfinance_prices":
+        score += 20
+        reasons.append("broad batch price coverage")
+    if request.kind == DatasetKind.FUNDAMENTALS and spec.source_id == "yfinance_screener":
+        score += 25
+        reasons.append("native bulk fundamentals screening")
 
     return score, reasons
 
@@ -396,9 +411,66 @@ def route(request: DatasetRequest) -> dict[str, Any]:
     }
 
 
+def route_workflow(
+    task: str,
+    region: str = "global",
+    scale: str = "medium",
+    stage: str = "screen",
+) -> dict[str, Any]:
+    text = task.lower()
+    normalized_region = normalize_region(region)
+    stages: list[DatasetRequest] = []
+
+    if any(word in text for word in ("backtest", "backtesting", "strategy")):
+        stages = [
+            DatasetRequest(DatasetKind.PRICES, normalized_region, scale, "screen", True),
+            DatasetRequest(DatasetKind.BACKTEST, normalized_region, scale, "backtest", False),
+        ]
+    elif any(word in text for word in ("filing", "10-k", "10-q", "edgar")):
+        stages = [
+            DatasetRequest(DatasetKind.FUNDAMENTALS, normalized_region, "small", "deep_dive", True),
+            DatasetRequest(DatasetKind.FILINGS, normalized_region, "small", "verification", True),
+        ]
+    elif any(word in text for word in ("multibagger", "compounder", "growth stock", "stock screen", "screener")):
+        stages = [
+            DatasetRequest(DatasetKind.UNIVERSE, normalized_region, scale, "discover", False),
+            DatasetRequest(DatasetKind.FUNDAMENTALS, normalized_region, "large", "screen", True),
+            DatasetRequest(DatasetKind.PRICES, normalized_region, "large", "screen", True),
+            DatasetRequest(
+                DatasetKind.FILINGS,
+                normalized_region,
+                "small",
+                "verification",
+                True,
+            ),
+        ]
+        if normalized_region == "global":
+            stages[-1] = DatasetRequest(DatasetKind.FILINGS, normalized_region, "small", "verification", True)
+    else:
+        stages = [DatasetRequest(infer_kind(task), normalized_region, scale, stage, True)]
+
+    return {
+        "task": task,
+        "region": normalized_region,
+        "workflow": [
+            {
+                "stage": request.kind.value,
+                "request": route(request),
+            }
+            for request in stages
+        ],
+        "policy": [
+            "Use broad metadata first; do not hit expensive per-company endpoints before filtering.",
+            "Use native bulk screeners when available for first-pass numeric filtering.",
+            "Only enrich a bounded shortlist with slow fundamentals/filings endpoints.",
+            "Cross-check material facts with independent sources before final ranking.",
+            "Never use fixture data as live evidence.",
+        ],
+    }
+
+
 def route_task(task: str, region: str = "global", scale: str = "medium", stage: str = "screen") -> dict[str, Any]:
-    kind = infer_kind(task)
-    return route(DatasetRequest(kind=kind, region=region, scale=scale, stage=stage, requires_fresh=True))
+    return route_workflow(task, region=region, scale=scale, stage=stage)
 
 
 def _filter_value(frame: Any, column: str, value: Any) -> Any:
@@ -419,6 +491,7 @@ def filter_finance_database(
     max_market_cap: float | None = None,
     only_primary_listing: bool = True,
     include_delisted: bool = False,
+    market_cap_categories: list[str] | None = None,
     limit: int = 10_000,
 ) -> dict[str, Any]:
     """Filter FinanceDatabase metadata without pretending it is live fundamentals."""
@@ -449,13 +522,20 @@ def filter_finance_database(
     if frame is None:
         frame = __import__("pandas").DataFrame()
 
-    if not include_delisted and "delisted" in frame.columns:
-        frame = frame[frame["delisted"].fillna(False) != True]
+    if market_cap_categories and "market_cap" in frame.columns:
+        normalized = {str(x).strip().casefold() for x in market_cap_categories if str(x).strip()}
+        actual = frame["market_cap"].astype(str).str.strip().str.casefold()
+        frame = frame[actual.isin(normalized)]
 
-    if min_market_cap is not None and "market_cap" in frame.columns:
-        frame = frame[frame["market_cap"].fillna(0) >= min_market_cap]
-    if max_market_cap is not None and "market_cap" in frame.columns:
-        frame = frame[frame["market_cap"].fillna(float("inf")) <= max_market_cap]
+    if not include_delisted and "delisted" in frame.columns:
+        values = frame["delisted"].astype(str).str.strip().str.lower()
+        frame = frame[~values.isin({"true", "1", "yes", "y"})]
+
+    if min_market_cap is not None or max_market_cap is not None:
+        # FinanceDatabase market_cap is a categorical size bucket, not a numeric valuation.
+        raise ValueError(
+            "FinanceDatabase market_cap is categorical. Use market_cap_categories instead of numeric min/max values."
+        )
 
     frame = frame.head(max(1, min(int(limit), 100_000)))
     records = frame.reset_index().to_dict(orient="records")
@@ -466,7 +546,7 @@ def filter_finance_database(
         "record_count": len(records),
         "records": records,
         "freshness": "metadata snapshot; not a live fundamentals feed",
-        "next_stage": route_task("price and fundamental screen", region=country or "global", scale="large", stage="screen"),
+        "next_stage": route_workflow("price and fundamental screen", region=country or "global", scale="large", stage="screen"),
     }
 
 
@@ -485,5 +565,6 @@ __all__ = [
     "provider_project_map",
     "route",
     "route_task",
+    "route_workflow",
     "source_health",
 ]
