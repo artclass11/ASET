@@ -2,11 +2,20 @@
 
 ASET exposes a read-only [Model Context Protocol](https://modelcontextprotocol.io/) server. MCP is the shared integration layer: the same typed tools can be discovered by ChatGPT, Claude, Manus, and other MCP hosts.
 
-The connector exposes three tools:
+The repository contains two complementary MCP surfaces. The core ASET MCP exposes normalized securities/prices/metrics; the SignalDesk MCP is the productized fundamentals and multi-agent screening surface described below.
 
-- `aset_get_security`: normalized ticker metadata and provenance.
-- `aset_get_prices`: bounded historical closing prices with provider and quality metadata.
-- `aset_calculate_metrics`: transparent return, drawdown, and annualized volatility calculations.
+## SignalDesk multibagger agents
+
+The SignalDesk MCP adds read-only tools for large-universe equity research:
+
+- analyze_stock: single-ticker provider-backed fundamentals.
+- screen_universe: bounded parallel screening across many tickers.
+- compare_stocks: normalized side-by-side comparison.
+- multibagger_radar: deterministic multi-year compounding candidate funnel.
+- check_signaldesk: service health.
+- get_signaldesk_config: non-secret provider/configuration metadata.
+
+Use the host prompts in `agents/multibagger/prompts/` to run the same workflow in ChatGPT, Claude and Manus. The agent should screen first, compare second, then independently verify the strongest candidates with primary sources. A screening score is not a return forecast.
 
 The server is intentionally read-only. It has no trading, brokerage, payment, filesystem, or arbitrary code-execution tool.
 

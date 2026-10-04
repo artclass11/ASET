@@ -12,7 +12,7 @@ WORKDIR /app
 COPY requirements-mcp.txt .
 RUN pip install --no-cache-dir -r requirements-mcp.txt
 
-COPY mcp_server.py .
+COPY agent_engine.py mcp_server.py .
 
 USER 65532:65532
 EXPOSE 8100

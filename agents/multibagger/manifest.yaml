@@ -1,0 +1,42 @@
+name: aset-multibagger-research-swarm
+version: 1.0
+purpose: >
+  Provider-backed public-equity screening and multi-agent diligence for finding
+  research-worthy multi-year compounding candidates without fabricating data.
+hosts:
+  - chatgpt
+  - claude
+  - manus
+transport: MCP
+core_tools:
+  - check_signaldesk
+  - get_signaldesk_config
+  - screen_universe
+  - compare_stocks
+  - multibagger_radar
+  - analyze_stock
+workflow:
+  - preflight_provider
+  - normalize_universe
+  - parallel_quant_screen
+  - cross_company_compare
+  - independent_primary_source_diligence
+  - bull_case
+  - skeptic_case
+  - valuation_and_expectations_check
+  - adjudicate
+  - research_queue
+default_universe_batch: 250
+max_universe_symbols: 1000
+default_shortlist: 20
+deep_diligence_shortlist: 10
+evidence_policy:
+  provider_values: required_for_screening
+  primary_sources: required_for_business_thesis
+  independent_review: required_for_top_candidates
+  missing_data: never_impute
+status_labels:
+  - A - immediate research candidate
+  - B - watchlist / needs trigger
+  - C - screen flag only
+  - Reject
