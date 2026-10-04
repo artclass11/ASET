@@ -380,6 +380,128 @@ def screen_yfinance_equities(
     }
 
 
+
+def fetch_akshare_a_share_universe(
+    *,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    limit: int = 10_000,
+) -> dict[str, Any]:
+    """Fetch and normalize the current A-share spot universe through AKShare."""
+    ak = _require("akshare", "akshare")
+    frame = ak.stock_zh_a_spot_em()
+    if frame is None or frame.empty:
+        return {"status": "empty", "provider": "AKShare", "record_count": 0, "records": []}
+
+    # AKShare column names are intentionally normalized here and nowhere else.
+    mapping = {
+        "代码": "symbol",
+        "名称": "company",
+        "最新价": "price",
+        "总市值": "market_cap",
+        "成交量": "volume",
+        "换手率": "turnover",
+        "市盈率-动态": "pe_ratio",
+    }
+    normalized = frame.rename(columns={k: v for k, v in mapping.items() if k in frame.columns}).copy()
+    if min_price is not None and "price" in normalized.columns:
+        normalized = normalized[normalized["price"].fillna(0) >= min_price]
+    if max_price is not None and "price" in normalized.columns:
+        normalized = normalized[normalized["price"].fillna(float("inf")) <= max_price]
+
+    keep = [x for x in ("symbol", "company", "price", "market_cap", "volume", "turnover", "pe_ratio") if x in normalized.columns]
+    normalized = normalized[keep].head(max(1, min(int(limit), 100_000)))
+    normalized["provider"] = "AKShare"
+    return {
+        "status": "ok",
+        "provider": "AKShare",
+        "record_count": len(normalized),
+        "records": normalized.to_dict(orient="records"),
+        "freshness": "provider spot snapshot",
+    }
+
+
+def fetch_akshare_history(
+    symbol: str,
+    *,
+    start: date,
+    end: date,
+    adjust: str = "qfq",
+) -> dict[str, Any]:
+    """Fetch normalized daily A-share history through AKShare."""
+    ak = _require("akshare", "akshare")
+    normalized = symbol.strip().upper()
+    frame = ak.stock_zh_a_hist(
+        symbol=normalized,
+        period="daily",
+        start_date=start.strftime("%Y%m%d"),
+        end_date=end.strftime("%Y%m%d"),
+        adjust=adjust,
+    )
+    if frame is None or frame.empty:
+        return {
+            "status": "empty",
+            "provider": "AKShare",
+            "symbol": normalized,
+            "records": [],
+        }
+
+    mapping = {
+        "日期": "trading_date",
+        "开盘": "open",
+        "最高": "high",
+        "最低": "low",
+        "收盘": "close",
+        "成交量": "volume",
+    }
+    frame = frame.rename(columns={k: v for k, v in mapping.items() if k in frame.columns})
+    records = frame.to_dict(orient="records")
+    return {
+        "status": "ok",
+        "provider": "AKShare",
+        "symbol": normalized,
+        "record_count": len(records),
+        "records": records,
+    }
+
+
+def fetch_sec_edgar_download(
+    symbol: str,
+    *,
+    form: str = "10-K",
+    limit: int = 1,
+    output_dir: str = "data/sec_filings",
+) -> dict[str, Any]:
+    """Download raw SEC filing documents as a local-ingestion fallback.
+
+    This adapter is intended for controlled local/worker jobs; public APIs should
+    prefer EdgarTools when structured XBRL access is required.
+    """
+    import os
+
+    if not os.getenv("EDGAR_IDENTITY", "").strip():
+        raise DataSourceUnavailable("EDGAR_IDENTITY is required for SEC downloads.")
+    module = _require("sec_edgar_downloader", "sec-edgar-downloader")
+    Downloader = getattr(module, "Downloader", None)
+    if Downloader is None:
+        raise DataSourceUnavailable("Installed sec-edgar-downloader does not expose Downloader.")
+
+    email = os.getenv("SEC_IDENTITY_EMAIL", "").strip()
+    name = os.getenv("SEC_IDENTITY_NAME", "").strip() or "ASET Research"
+    if not email:
+        raise DataSourceUnavailable("SEC_IDENTITY_EMAIL is required for sec-edgar-downloader.")
+
+    downloader = Downloader(name, email, output_dir)
+    downloaded = downloader.get(form, symbol=symbol.strip().upper(), limit=max(1, min(int(limit), 10)))
+    return {
+        "status": "ok",
+        "provider": "sec-edgar-downloader",
+        "symbol": symbol.strip().upper(),
+        "form": form,
+        "download_count": downloaded,
+        "output_dir": output_dir,
+    }
+
 def fetch_sec_company_filing(symbol: str, *, form: str = "10-K") -> dict[str, Any]:
     """Retrieve the latest SEC filing through EdgarTools."""
     edgar = _require("edgar", "edgartools")
@@ -488,6 +610,9 @@ def source_engine_status() -> dict[str, Any]:
 __all__ = [
     "DataSourceUnavailable",
     "choose_backtest_engine",
+    "fetch_akshare_a_share_universe",
+    "fetch_akshare_history",
+    "fetch_sec_edgar_download",
     "fetch_macro_series",
     "fetch_openbb_coverage",
     "fetch_sec_company_filing",
