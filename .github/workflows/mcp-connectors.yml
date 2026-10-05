@@ -8,6 +8,7 @@ on:
     paths:
       - "apps/live-signaldesk/mcp_server.py"
       - "apps/live-signaldesk/agent_engine.py"
+      - "apps/live-signaldesk/research_agent.py"
       - "apps/live-signaldesk/test_agent_engine.py"
       - "apps/live-signaldesk/requirements-mcp.txt"
       - "integrations/**"
@@ -37,7 +38,7 @@ jobs:
       - name: Install MCP runtime
         run: pip install -r apps/live-signaldesk/requirements-mcp.txt
       - name: Compile
-        run: python -m compileall apps/live-signaldesk/mcp_server.py apps/live-signaldesk/agent_engine.py integrations/claude-mcpb/server/main.py
+        run: python -m compileall apps/live-signaldesk/mcp_server.py apps/live-signaldesk/agent_engine.py apps/live-signaldesk/research_agent.py integrations/claude-mcpb/server/main.py
       - name: Import
         working-directory: apps/live-signaldesk
         run: python -c "import mcp_server; print(mcp_server.SERVER_NAME)"
