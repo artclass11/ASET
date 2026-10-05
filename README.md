@@ -30,6 +30,12 @@ It uses Alpha Vantage on the server, keeps the API key out of the browser, shows
 
 The open core includes CSV validation, net margin, income growth, average supplied net income, debt/cash, market-cap-to-income proxy, flags and JSON/Markdown output.
 
+### ASET Demo
+
+See ASET in action:
+
+▶️ **[Watch the ASET demo on YouTube](https://youtu.be/7tgh1bEgkyY?si=LVeor89ZwBtfivGH)**
+
 ### Windows desktop
 
 [ASET SignalDesk for Windows](apps/windows-signaldesk/) is a Tauri desktop client for the live SignalDesk API. It packages as both an NSIS setup executable and MSI through GitHub Actions and keeps provider credentials on the API server.
