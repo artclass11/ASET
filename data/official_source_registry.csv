@@ -1,0 +1,15 @@
+source_ref,region,market_or_scope,publisher,source_type,official_url,approved_use,source_tier,notes
+SRC-SEC-US,US,US listed issuers,US Securities and Exchange Commission,regulatory filings,https://www.sec.gov/edgar/searchedgar/companysearch,10-K 10-Q 8-K XBRL issuer filings,1,Use filing and XBRL records as primary evidence
+SRC-IR-US,US,US listed issuers,Issuer investor relations site,issuer materials,https://www.sec.gov/edgar/searchedgar/companysearch,Annual reports earnings releases investor presentations,3,Resolve the issuer IR URL per entity
+SRC-SEDAR-CA,Canada,Canadian reporting issuers,Canadian Securities Administrators,regulatory filings,https://www.sedarplus.ca,Annual interim and material filings,1,Use official SEDAR+ records
+SRC-COMPANIES-HOUSE-GB,United Kingdom,UK incorporated issuers,UK Companies House,company registry,https://find-and-update.company-information.service.gov.uk,Accounts confirmation statements and company identity,1,Registry data is not a substitute for market filings
+SRC-FCA-NSM-GB,United Kingdom,UK listed issuers,UK Financial Conduct Authority,regulatory disclosures,https://data.fca.org.uk,Regulated announcements and issuer disclosures,1,Use official NSM records where applicable
+SRC-ASX-AU,Australia,ASX issuers,Australian Securities Exchange,exchange announcements,https://www.asx.com.au,Announcements and issuer filings,1,Use official ASX records
+SRC-HKEX-HK,Hong Kong,HKEX issuers,Hong Kong Exchanges and Clearing,exchange filings,https://www1.hkexnews.hk,Announcements and financial reports,1,Use HKEXnews primary records
+SRC-JPX-JP,Japan,JPX issuers,Japan Exchange Group,exchange disclosures,https://www.jpx.co.jp,Issuer disclosures and exchange data,1,Use official JPX records
+SRC-SGX-SG,Singapore,SGX issuers,Singapore Exchange,exchange announcements,https://www.sgx.com,Issuer announcements and filings,1,Use official SGX records
+SRC-NSE-IN,India,NSE India issuers,National Stock Exchange of India,exchange filings,https://www.nseindia.com,Corporate filings and announcements,1,Use official NSE records
+SRC-BSE-IN,India,BSE India issuers,BSE India,exchange filings,https://www.bseindia.com,Corporate filings and announcements,1,Use official BSE records
+SRC-EU-ESMA,European Union,EU regulated markets,European Securities and Markets Authority,regulatory filings,https://www.esma.europa.eu,Regulated information and issuer disclosure discovery,1,Verify final record at the national venue or issuer
+SRC-ISSUER-ANNUAL,Global,Any listed issuer,Issuer investor relations,annual report,https://www.sec.gov/edgar/searchedgar/companysearch,Annual reports results presentations and official guidance,3,Replace URL with the issuer's official IR page
+SRC-ASET-MCP,Global,ASET normalized research,ASET project,read-only MCP,https://github.com/artclass11/ASET,Provider data with provenance and quality metadata,2,Do not label fixture data as live market data

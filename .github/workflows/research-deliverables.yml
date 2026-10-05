@@ -1,0 +1,47 @@
+name: Research Deliverables
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "agents/**"
+      - "data/**"
+      - "tools/build_research_deliverables.py"
+      - "pyproject.toml"
+      - ".github/workflows/research-deliverables.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install openpyxl reportlab
+      - name: Build professional files
+        run: python tools/build_research_deliverables.py
+      - name: Validate file signatures and text
+        run: |
+          file deliverables/*
+          pdftotext deliverables/ASET_Professional_Global_Equity_Research_Framework.pdf - | grep -q "IMPORTANT NOTICE"
+          python - <<'PY'
+          from openpyxl import load_workbook
+          p = "deliverables/ASET_Professional_Global_Equity_Research_Template.xlsx"
+          wb = load_workbook(p, data_only=False)
+          assert wb["Screen_Output"]["J5"].value.startswith("=IF(")
+          assert wb["Screen_Input"]["A5"].value is None
+          PY
+      - name: Upload downloadable artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aset-professional-research-deliverables
+          path: deliverables/
+          if-no-files-found: error
