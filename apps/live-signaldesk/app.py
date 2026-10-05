@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from source_reconciliation import reconcile_many
+
 BASE_URL = "https://www.alphavantage.co/query"
 API_KEY = os.getenv("ALPHAVANTAGE_API_KEY", "").strip()
 TIMEOUT = float(os.getenv("ALPHAVANTAGE_TIMEOUT_SECONDS", "15"))
@@ -267,6 +269,24 @@ async def home() -> FileResponse:
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "healthy", "provider": "Alpha Vantage", "time": now()}
+
+
+@app.get("/api/v1/research/{symbol}/verification")
+async def research_verification(
+    symbol: str,
+    entitlement: str | None = Query(default=None, pattern="^(realtime|delayed)?$"),
+) -> dict[str, Any]:
+    """Cross-check ASET/Alpha Vantage research data against Yahoo Finance."""
+    normalized = symbol.strip().upper()
+    if not SYMBOL_RE.fullmatch(normalized):
+        raise HTTPException(status_code=400, detail="Invalid ticker symbol.")
+    primary = await build_research(normalized, entitlement)
+    checks = await reconcile_many([primary], concurrency=1)
+    return checks[0] if checks else {
+        "symbol": normalized,
+        "verification": {"status": "secondary_unavailable", "grade": "C"},
+        "field_checks": {},
+    }
 
 
 @app.get("/api/v1/config")
