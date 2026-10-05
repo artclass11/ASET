@@ -8,12 +8,18 @@ on:
       - "agents/research-director/**"
       - "apps/live-signaldesk/agent_engine.py"
       - "apps/live-signaldesk/mcp_server.py"
+      - "agents/research-director/**"
+      - "apps/live-signaldesk/agent_engine.py"
+      - "apps/live-signaldesk/mcp_server.py"
       - "pyproject.toml"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
       - "stock_analyzer/**"
       - "tests/**"
+      - "agents/research-director/**"
+      - "apps/live-signaldesk/agent_engine.py"
+      - "apps/live-signaldesk/mcp_server.py"
       - "pyproject.toml"
       - ".github/workflows/ci.yml"
 
