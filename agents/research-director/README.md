@@ -16,6 +16,10 @@ It sits above the deterministic SignalDesk/MCP tools and turns a ticker universe
 
 The agent is intentionally research-first and execution-free. It does not place brokerage orders, invent facts, or turn a screen score into a guaranteed-return prediction.
 
+## Demo
+
+▶️ **[Watch the ASET demo on YouTube](https://youtu.be/7tgh1bEgkyY?si=LVeor89ZwBtfivGH)**
+
 ## Why this is different from the existing radar
 
 multibagger_radar is a deterministic scoring funnel.
