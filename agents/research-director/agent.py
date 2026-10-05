@@ -5,7 +5,12 @@ from dataclasses import dataclass
 from typing import Any, Sequence
 
 from agent_engine import compare_payloads, rank_multibagger_candidates
-from mcp_server import API_BASE, api_get, fetch_many, normalize_symbols
+
+
+def _default_dependencies() -> tuple[str, Any, Any, Any]:
+    # Lazy import avoids a circular dependency when the MCP layer imports this agent.
+    from mcp_server import API_BASE, api_get, fetch_many, normalize_symbols
+    return API_BASE, api_get, fetch_many, normalize_symbols
 
 
 @dataclass(frozen=True)
@@ -31,24 +36,37 @@ class ResearchAgentConfig:
 class ResearchDirector:
     """Deterministic orchestration layer over the ASET SignalDesk research API."""
 
-    def __init__(self, config: ResearchAgentConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: ResearchAgentConfig | None = None,
+        *,
+        api_base: str | None = None,
+        api_get_fn: Any | None = None,
+        fetch_many_fn: Any | None = None,
+        normalize_symbols_fn: Any | None = None,
+    ) -> None:
         self.config = config or ResearchAgentConfig()
         self.config.validate()
+        default_base, default_get, default_fetch, default_normalize = _default_dependencies()
+        self.api_base = api_base or default_base
+        self._api_get = api_get_fn or default_get
+        self._fetch_many = fetch_many_fn or default_fetch
+        self._normalize_symbols = normalize_symbols_fn or default_normalize
 
     async def preflight(self) -> dict[str, Any]:
         failures: list[str] = []
         try:
-            health = await api_get("/health")
+            health = await self._api_get("/health")
         except Exception as exc:
             health = {"status": "error"}
             failures.append(f"health check failed: {exc}")
         try:
-            config = await api_get("/api/v1/config")
+            config = await self._api_get("/api/v1/config")
         except Exception as exc:
             config = {"status": "error"}
             failures.append(f"configuration check failed: {exc}")
         return {
-            "api_base": API_BASE,
+            "api_base": self.api_base,
             "healthy": not failures,
             "health": health,
             "config": config,
@@ -112,7 +130,7 @@ class ResearchDirector:
         requested_top_k = max(1, min(int(top_k or self.config.default_top_k), 100))
         requested_deep_k = max(1, min(int(deep_diligence_k or self.config.default_deep_diligence_k), requested_top_k))
 
-        clean = normalize_symbols(list(symbols))
+        clean = self._normalize_symbols(list(symbols))
         if len(clean) > self.config.max_symbols:
             raise ValueError(f"symbols exceeds ResearchDirector max_symbols={self.config.max_symbols}")
 
@@ -131,7 +149,7 @@ class ResearchDirector:
         batch_candidates: list[list[dict[str, Any]]] = []
 
         for index, batch in enumerate(batches, start=1):
-            rows, batch_failures = await fetch_many(batch, entitlement)
+            rows, batch_failures = await self._fetch_many(batch, entitlement)
             failures.extend({"batch": index, **failure} for failure in batch_failures)
             candidates = rank_multibagger_candidates(rows, top_k=self.config.shortlist_per_batch)
             batch_candidates.append(candidates)
@@ -155,7 +173,7 @@ class ResearchDirector:
         shortlist_symbols = [self._candidate_key(row) for row in merged if self._candidate_key(row)]
         comparison: list[dict[str, Any]] = []
         if shortlist_symbols:
-            compare_rows, compare_failures = await fetch_many(shortlist_symbols[:100], entitlement)
+            compare_rows, compare_failures = await self._fetch_many(shortlist_symbols[:100], entitlement)
             comparison = compare_payloads(compare_rows)
             failures.extend({"stage": "compare", **failure} for failure in compare_failures)
 
