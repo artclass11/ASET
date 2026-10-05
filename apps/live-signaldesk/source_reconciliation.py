@@ -168,6 +168,7 @@ def reconcile_rows(
                     "grade": verification_grade,
                     "primary_source": row.get("provider")
                     or row.get("source")
+                    or (row.get("meta") or {}).get("provider")
                     or "ASET provider payload",
                     "secondary_source": yahoo.get("provider")
                     if yahoo
