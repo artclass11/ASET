@@ -11,6 +11,7 @@ from mcp.types import ToolAnnotations
 
 from agent_engine import compare_payloads, rank_multibagger_candidates
 from research_agent import ResearchDirector
+from source_reconciliation import reconcile_many
 
 SERVER_NAME = "ASET SignalDesk"
 API_BASE = os.getenv("SIGNALDESK_API_BASE", "http://127.0.0.1:8000").rstrip("/")
@@ -235,6 +236,37 @@ async def multibagger_radar(
             "Separate business quality from valuation and market expectations.",
             "Reject candidates where key evidence cannot be independently verified.",
         ],
+    }
+
+
+@mcp.tool(
+    title="Cross-check research sources",
+    description=(
+        "Cross-check material fundamentals from the configured ASET provider against Yahoo Finance via "
+        "yfinance. Returns field-level match/close/conflict/unavailable statuses, a verification grade, "
+        "timestamps and an explicit note that cross-provider agreement is not primary-filing verification."
+    ),
+    annotations=ToolAnnotations(read_only_hint=True, idempotent_hint=True),
+)
+async def cross_check_sources(symbols: list[str], entitlement: str = "") -> dict[str, Any]:
+    """Cross-check provider fundamentals without changing or imputing source values."""
+    clean = normalize_symbols(symbols)
+    if len(clean) > 100:
+        raise ValueError("cross_check_sources accepts at most 100 symbols per call")
+    if entitlement not in ("", "realtime", "delayed"):
+        raise ValueError("entitlement must be empty, realtime, or delayed")
+    rows, failures = await fetch_many(clean, entitlement)
+    checks = await reconcile_many(rows, concurrency=AGENT_CONCURRENCY)
+    return {
+        "symbols": clean,
+        "provider_rows": len(rows),
+        "failed_symbols": len(failures),
+        "failures": failures,
+        "checks": checks,
+        "verification_note": (
+            "A cross-provider match improves data confidence but does not replace "
+            "primary company filings or audited statements."
+        ),
     }
 
 
