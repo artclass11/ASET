@@ -82,7 +82,16 @@ async def test_low_evidence_candidates_are_gated():
         return {"status": "healthy"} if path == "/health" else {"provider": "fixture"}
 
     async def fake_fetch(symbols, entitlement):
-        return [row(symbols[0], 1.0, 20.0)], []
+        item = row(symbols[0], 1.0, 20.0)
+        item["fundamentals"].update({
+            "revenue": None,
+            "net_income": None,
+            "average_5y_net_income": None,
+            "debt": None,
+            "cash": None,
+            "market_cap": None,
+        })
+        return [item], []
 
     def fake_normalize(symbols):
         return list(dict.fromkeys(s.strip().upper() for s in symbols))
