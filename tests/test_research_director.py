@@ -80,7 +80,6 @@ async def test_large_universe_is_partitioned_and_deduplicated():
     assert result["shortlist"][0]["provenance"]["provider"] == "fixture"
 
 
-@pytest.mark.asyncio
 async def test_low_evidence_candidates_are_gated():
     async def fake_get(path: str):
         return {"status": "healthy"} if path == "/health" else {"provider": "fixture"}
@@ -121,7 +120,6 @@ async def test_low_evidence_candidates_are_gated():
     assert result["evidence_rejections"][0]["status"] == "evidence gap"
 
 
-@pytest.mark.asyncio
 async def test_preflight_failure_is_degraded_but_does_not_crash():
     async def fake_get(path: str):
         raise RuntimeError("provider unavailable")
