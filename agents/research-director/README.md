@@ -9,8 +9,10 @@ It sits above the deterministic SignalDesk/MCP tools and turns a ticker universe
 3. screen every batch without imputing missing data;
 4. merge and de-duplicate the strongest candidates;
 5. run a normalized cross-company comparison;
-6. apply evidence and risk gates;
-7. return a compact deep-diligence queue plus explicit data gaps.
+6. reconcile key fundamentals across the configured ASET provider and Yahoo Finance;
+7. surface field-level conflicts instead of silently choosing a source;
+8. apply evidence and risk gates;
+9. return a compact deep-diligence queue plus explicit data gaps and verification status.
 
 The agent is intentionally research-first and execution-free. It does not place brokerage orders, invent facts, or turn a screen score into a guaranteed-return prediction.
 
@@ -30,7 +32,8 @@ The MCP server exposes:
 - multibagger_radar — deterministic candidate funnel;
 - analyze_stock — single-company provider-backed research;
 - check_signaldesk — service health;
-- get_signaldesk_config — safe provider/configuration metadata.
+- get_signaldesk_config — safe provider/configuration metadata;
+- cross_check_sources — Yahoo-vs-ASET field-level reconciliation with verification grades.
 
 ## Output contract
 
@@ -42,4 +45,4 @@ Every candidate carries the underlying deterministic score and risk flags. Missi
 
 The agent is designed for large universes up to the configured ASET limit. Batch size, shortlist size, and deep-diligence queue size are bounded to keep tool responses predictable.
 
-Primary-source business diligence remains a host-side responsibility. A host such as ChatGPT should use the returned queue as the starting point for filings, investor relations materials, earnings calls and independent market evidence.
+Cross-provider agreement is a confidence signal, not primary-source verification. Primary-source business diligence remains a host-side responsibility. A host such as ChatGPT should use the returned queue as the starting point for filings, investor relations materials, earnings calls and independent market evidence.
