@@ -10,6 +10,7 @@ hosts:
 transport: MCP
 core_tools:
   - research_director
+  - cross_check_sources
   - check_signaldesk
   - get_signaldesk_config
   - screen_universe
@@ -23,6 +24,7 @@ workflow:
   - parallel_quant_screen
   - merge_and_deduplicate
   - normalized_compare
+  - source_reconciliation
   - evidence_gate
   - deep_diligence_queue
 limits:
@@ -33,5 +35,7 @@ limits:
 policy:
   missing_data: never_impute
   primary_sources: required_for_material_business_claims
+  cross_provider_check: yahoo_finance_vs_configured_aset_provider
+  conflict_policy: surface_conflict_never_silently_choose
   execution: disabled
   score_interpretation: research_priority_only
