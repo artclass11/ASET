@@ -91,3 +91,14 @@ ASET is research and analytics software. It does not submit brokerage orders, pr
 ## License
 
 MIT. See [LICENSE](LICENSE). Third-party dependencies keep their own licenses.
+
+
+## Multi-agent equity research
+
+[ASET Multibagger Research Swarm](agents/multibagger/) gives ChatGPT, Claude and Manus the same host-neutral research protocol.
+
+The swarm is designed to screen large universes in batches, compare the strongest companies on normalized fields, separate quantitative signals from qualitative judgment, force primary-source diligence, and run both bull-case and adversarial-skeptic reviews.
+
+MCP batch tools: analyze_stock, screen_universe, compare_stocks, multibagger_radar.
+
+The deterministic score is a research-priority funnel only. It is not a guaranteed-return forecast or an intrinsic-value model.

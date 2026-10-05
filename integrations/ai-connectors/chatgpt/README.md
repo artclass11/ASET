@@ -8,7 +8,7 @@ ASET uses the standard Model Context Protocol (MCP) so ChatGPT can call the same
 2. Use the endpoint ending in /mcp.
 3. In a ChatGPT workspace with custom MCP apps enabled, create a custom app and enter the MCP endpoint.
 4. Scan tools.
-5. Test in a new chat with a request such as: Analyze AAPL with ASET SignalDesk.
+5. Test in a new chat with a request such as: Scan my stock universe with ASET and find the strongest multi-year compounding candidates.
 
 Example:
 
@@ -16,16 +16,28 @@ Example:
 https://research.example.com/mcp
 ~~~
 
-ChatGPT's current custom-MCP flow is documented by OpenAI. ChatGPT connects to remote MCP servers; local servers require a supported tunnel.
+## Multi-stock agent workflow
 
-## Read-only tools
+The recommended agent uses these tools in order:
 
-- analyze_stock
 - check_signaldesk
 - get_signaldesk_config
-- research_prompt
+- screen_universe
+- compare_stocks
+- multibagger_radar
+- analyze_stock
+
+For a universe larger than one batch, ChatGPT should partition the tickers into chunks, screen each chunk, merge the top candidates, compare the merged shortlist, and then use its own research/web capabilities for primary-source diligence.
+
+The MCP server returns compact candidate output rather than thousands of raw records, which keeps chat context manageable.
+
+## Read-only safety
 
 No trade execution is exposed.
+
+The deterministic ASET score is a research-priority signal only. ChatGPT must independently verify moat, runway, valuation, catalysts, dilution, governance and the thesis-killer before presenting an A-level candidate.
+
+Do not store Alpha Vantage credentials in ChatGPT configuration. Keep provider keys in the self-hosted server environment.
 
 Official references:
 
