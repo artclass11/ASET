@@ -10,6 +10,7 @@ from mcp.server.mcpserver import MCPServer
 from mcp.types import ToolAnnotations
 
 from agent_engine import compare_payloads, rank_multibagger_candidates
+from research_agent import ResearchDirector
 
 SERVER_NAME = "ASET SignalDesk"
 API_BASE = os.getenv("SIGNALDESK_API_BASE", "http://127.0.0.1:8000").rstrip("/")
@@ -235,6 +236,31 @@ async def multibagger_radar(
             "Reject candidates where key evidence cannot be independently verified.",
         ],
     }
+
+
+@mcp.tool(
+    title="Run ASET Research Director",
+    description=(
+        "Orchestrate an end-to-end read-only equity research run across a ticker universe. "
+        "Preflights the provider, partitions large universes, screens each batch, merges and "
+        "deduplicates candidates, runs normalized comparison, applies an evidence gate, and "
+        "returns a deep-diligence queue with failures and data gaps. No brokerage execution."
+    ),
+    annotations=ToolAnnotations(read_only_hint=True, idempotent_hint=True),
+)
+async def research_director(
+    symbols: list[str],
+    top_k: int = 20,
+    deep_diligence_k: int = 10,
+    entitlement: str = "",
+) -> dict[str, Any]:
+    """Run the ASET Research Director orchestration workflow."""
+    return await ResearchDirector().run(
+        symbols,
+        top_k=top_k,
+        deep_diligence_k=deep_diligence_k,
+        entitlement=entitlement,
+    )
 
 
 @mcp.prompt()
