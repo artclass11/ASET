@@ -9,6 +9,7 @@ on:
       - "apps/live-signaldesk/mcp_server.py"
       - "apps/live-signaldesk/agent_engine.py"
       - "apps/live-signaldesk/research_agent.py"
+      - "apps/live-signaldesk/research_agent.py"
       - "apps/live-signaldesk/test_agent_engine.py"
       - "apps/live-signaldesk/requirements-mcp.txt"
       - "integrations/**"
@@ -18,6 +19,7 @@ on:
     paths:
       - "apps/live-signaldesk/mcp_server.py"
       - "apps/live-signaldesk/agent_engine.py"
+      - "apps/live-signaldesk/research_agent.py"
       - "apps/live-signaldesk/test_agent_engine.py"
       - "apps/live-signaldesk/requirements-mcp.txt"
       - "integrations/**"
