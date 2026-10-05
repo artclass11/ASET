@@ -1,3 +1,4 @@
+import asyncio
 import sys
 from pathlib import Path
 
@@ -66,7 +67,7 @@ async def test_large_universe_is_partitioned_and_deduplicated():
         normalize_symbols_fn=fake_normalize,
     )
 
-    result = await agent.run(["a", "b", "c", "d", "d"], top_k=4, deep_diligence_k=2)
+    result = asyncio.run(agent.run(["a", "b", "c", "d", "d"], top_k=4, deep_diligence_k=2))
 
     assert result["universe"]["requested"] == 4
     assert result["universe"]["batch_count"] == 2
@@ -93,7 +94,7 @@ async def test_low_evidence_candidates_are_gated():
         normalize_symbols_fn=fake_normalize,
     )
 
-    result = await agent.run(["ABC"], top_k=5, deep_diligence_k=2)
+    result = asyncio.run(agent.run(["ABC"], top_k=5, deep_diligence_k=2))
 
     assert result["deep_diligence_queue"] == []
     assert result["evidence_rejections"]
@@ -113,7 +114,7 @@ async def test_preflight_failure_is_degraded_but_does_not_crash():
 
     agent = ResearchDirector(api_get_fn=fake_get, fetch_many_fn=fake_fetch, normalize_symbols_fn=fake_normalize)
 
-    result = await agent.run(["ABC"], top_k=1, deep_diligence_k=1)
+    result = asyncio.run(agent.run(["ABC"], top_k=1, deep_diligence_k=1))
 
     assert result["preflight"]["healthy"] is False
     assert result["stages"][0]["status"] == "degraded"
