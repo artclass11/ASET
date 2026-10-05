@@ -36,7 +36,7 @@ The open core includes CSV validation, net margin, income growth, average suppli
 
 ### AI chat connectors
 
-ASET is also open-source and **MCP-native**. [AI Connectors](integrations/ai-connectors/) lets ChatGPT, Claude and Manus call the same read-only SignalDesk research tools from chat. Claude Desktop also has an [MCP Bundle source](integrations/claude-mcpb/) for one-click local installation.
+ASET is also open-source and **MCP-native**. [AI Connectors](integrations/ai-connectors/) lets ChatGPT, Claude and Manus call the same read-only SignalDesk research tools from chat. The new [Research Director agent](agents/research-director/) orchestrates the full screening → comparison → evidence-gate → deep-diligence workflow. Claude Desktop also has an [MCP Bundle source](integrations/claude-mcpb/) for one-click local installation.
 
 Commercial Pro can be licensed separately for additional live providers, automated refresh, PDF/HTML reporting, saved workspaces, API/team deployment, custom integrations and enterprise support.
 
@@ -99,6 +99,6 @@ MIT. See [LICENSE](LICENSE). Third-party dependencies keep their own licenses.
 
 The swarm is designed to screen large universes in batches, compare the strongest companies on normalized fields, separate quantitative signals from qualitative judgment, force primary-source diligence, and run both bull-case and adversarial-skeptic reviews.
 
-MCP batch tools: analyze_stock, screen_universe, compare_stocks, multibagger_radar.
+MCP research tools: research_director, analyze_stock, screen_universe, compare_stocks, multibagger_radar.
 
 The deterministic score is a research-priority funnel only. It is not a guaranteed-return forecast or an intrinsic-value model.
