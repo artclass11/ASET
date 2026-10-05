@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Sequence
 
 from agent_engine import compare_payloads, rank_multibagger_candidates
+from source_reconciliation import reconcile_many
 
 
 def _default_dependencies() -> tuple[str, Any, Any, Any]:
@@ -21,6 +22,8 @@ class ResearchAgentConfig:
     default_top_k: int = 20
     default_deep_diligence_k: int = 10
     min_evidence_completeness: float = 60.0
+    enable_cross_provider_check: bool = True
+    reconciliation_concurrency: int = 4
 
     def validate(self) -> None:
         if not 1 <= self.batch_size <= self.max_symbols:
@@ -31,6 +34,8 @@ class ResearchAgentConfig:
             raise ValueError("default_top_k must be between 1 and 100")
         if not 1 <= self.default_deep_diligence_k <= self.default_top_k:
             raise ValueError("default_deep_diligence_k must be <= default_top_k")
+        if not 1 <= self.reconciliation_concurrency <= 16:
+            raise ValueError("reconciliation_concurrency must be between 1 and 16")
 
 
 class ResearchDirector:
@@ -172,6 +177,7 @@ class ResearchDirector:
 
         shortlist_symbols = [self._candidate_key(row) for row in merged if self._candidate_key(row)]
         comparison: list[dict[str, Any]] = []
+        compare_rows: list[dict[str, Any]] = []
         if shortlist_symbols:
             compare_rows, compare_failures = await self._fetch_many(shortlist_symbols[:100], entitlement)
             comparison = compare_payloads(compare_rows)
@@ -181,6 +187,35 @@ class ResearchDirector:
             "name": "normalized_compare",
             "status": "ok" if comparison else "degraded",
             "compared": len(comparison),
+        })
+
+        source_reconciliation: list[dict[str, Any]] = []
+        if self.config.enable_cross_provider_check and compare_rows:
+            source_reconciliation = await reconcile_many(
+                compare_rows,
+                concurrency=self.config.reconciliation_concurrency,
+            )
+        verification_summary = {
+            "enabled": self.config.enable_cross_provider_check,
+            "checked": len(source_reconciliation),
+            "cross_checked": sum(
+                1 for item in source_reconciliation
+                if (item.get("verification") or {}).get("status") == "cross_checked"
+            ),
+            "partial_cross_check": sum(
+                1 for item in source_reconciliation
+                if (item.get("verification") or {}).get("status") == "partial_cross_check"
+            ),
+            "conflicts": sum(
+                1 for item in source_reconciliation
+                if (item.get("verification") or {}).get("status") == "conflict"
+            ),
+            "primary_source_verification": "pending",
+        }
+        stages.append({
+            "name": "source_reconciliation",
+            "status": "ok" if source_reconciliation else "degraded",
+            "details": verification_summary,
         })
 
         evidence_pass, evidence_reject = self._apply_evidence_gate(merged)
@@ -219,6 +254,8 @@ class ResearchDirector:
             "stages": stages,
             "shortlist": merged,
             "comparison": comparison,
+            "source_reconciliation": source_reconciliation,
+            "verification_summary": verification_summary,
             "deep_diligence_queue": queue,
             "evidence_rejections": evidence_reject,
             "data_gaps": data_gaps,
