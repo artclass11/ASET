@@ -53,4 +53,6 @@ jobs:
           grep -q '  - chatgpt' agents/multibagger/manifest.yaml
           grep -q '  - claude' agents/multibagger/manifest.yaml
           grep -q '  - manus' agents/multibagger/manifest.yaml
+          grep -q 'name: aset-research-director' agents/research-director/manifest.yaml
+          grep -q '  - research_director' agents/research-director/manifest.yaml
           echo "Agent manifest smoke test passed"
