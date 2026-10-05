@@ -46,7 +46,6 @@ def row(symbol: str, score_input: float, completeness: float) -> dict:
     }
 
 
-@pytest.mark.asyncio
 async def test_large_universe_is_partitioned_and_deduplicated():
     async def fake_get(path: str):
         if path == "/health":
@@ -60,7 +59,12 @@ async def test_large_universe_is_partitioned_and_deduplicated():
         return list(dict.fromkeys(s.strip().upper() for s in symbols))
 
     agent = ResearchDirector(
-        ResearchAgentConfig(batch_size=2, shortlist_per_batch=2, default_top_k=4, default_deep_diligence_k=2),
+        ResearchAgentConfig(
+            batch_size=2,
+            shortlist_per_batch=2,
+            default_top_k=4,
+            default_deep_diligence_k=2,
+        ),
         api_base="test://signaldesk",
         api_get_fn=fake_get,
         fetch_many_fn=fake_fetch,
@@ -83,21 +87,28 @@ async def test_low_evidence_candidates_are_gated():
 
     async def fake_fetch(symbols, entitlement):
         item = row(symbols[0], 1.0, 20.0)
-        item["fundamentals"].update({
-            "revenue": None,
-            "net_income": None,
-            "average_5y_net_income": None,
-            "debt": None,
-            "cash": None,
-            "market_cap": None,
-        })
+        item["fundamentals"].update(
+            {
+                "revenue": None,
+                "net_income": None,
+                "average_5y_net_income": None,
+                "debt": None,
+                "cash": None,
+                "market_cap": None,
+            }
+        )
         return [item], []
 
     def fake_normalize(symbols):
         return list(dict.fromkeys(s.strip().upper() for s in symbols))
 
     agent = ResearchDirector(
-        ResearchAgentConfig(batch_size=10, default_top_k=5, default_deep_diligence_k=2, min_evidence_completeness=60.0),
+        ResearchAgentConfig(
+            batch_size=10,
+            default_top_k=5,
+            default_deep_diligence_k=2,
+            min_evidence_completeness=60.0,
+        ),
         api_get_fn=fake_get,
         fetch_many_fn=fake_fetch,
         normalize_symbols_fn=fake_normalize,
@@ -121,7 +132,11 @@ async def test_preflight_failure_is_degraded_but_does_not_crash():
     def fake_normalize(symbols):
         return list(dict.fromkeys(s.strip().upper() for s in symbols))
 
-    agent = ResearchDirector(api_get_fn=fake_get, fetch_many_fn=fake_fetch, normalize_symbols_fn=fake_normalize)
+    agent = ResearchDirector(
+        api_get_fn=fake_get,
+        fetch_many_fn=fake_fetch,
+        normalize_symbols_fn=fake_normalize,
+    )
 
     result = asyncio.run(agent.run(["ABC"], top_k=1, deep_diligence_k=1))
 
