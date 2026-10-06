@@ -57,4 +57,5 @@ jobs:
           grep -q 'name: aset-research-director' agents/research-director/manifest.yaml
           grep -q '  - research_director' agents/research-director/manifest.yaml
           grep -q '  - cross_check_sources' agents/research-director/manifest.yaml
+          grep -q '  - export_research_dataset' agents/research-director/manifest.yaml
           echo "Agent manifest smoke test passed"
