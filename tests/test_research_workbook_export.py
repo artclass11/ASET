@@ -151,4 +151,6 @@ def test_workbook_preserves_negative_values(tmp_path):
     payload["export_dataset"]["records"][0]["cash_flow_history"][0]["capitalExpenditures"] = -20
     output = build_workbook(payload, tmp_path / "aset.xlsx")
     wb = openpyxl.load_workbook(output, data_only=False)
-    assert wb["Cash_Flow_5Y"]["E5"].value == -20
+    rows = list(wb["Cash_Flow_5Y"].iter_rows(min_row=5, values_only=True))
+    capex_values = [row[4] for row in rows if row[3] == "capitalExpenditures"]
+    assert capex_values == [-20]
