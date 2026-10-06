@@ -63,6 +63,7 @@ def test_large_universe_is_partitioned_and_deduplicated():
             shortlist_per_batch=2,
             default_top_k=4,
             default_deep_diligence_k=2,
+            enable_cross_provider_check=False,
         ),
         api_base="test://signaldesk",
         api_get_fn=fake_get,
@@ -79,6 +80,8 @@ def test_large_universe_is_partitioned_and_deduplicated():
     assert len(result["shortlist"]) == 4
     assert len(result["deep_diligence_queue"]) == 2
     assert result["shortlist"][0]["provenance"]["provider"] == "fixture"
+    assert result["export_dataset"]["schema_version"] == "aset_research_workbook.v1"
+    assert len(result["export_dataset"]["records"]) == 4
 
 
 def test_low_evidence_candidates_are_gated():
@@ -108,6 +111,7 @@ def test_low_evidence_candidates_are_gated():
             default_top_k=5,
             default_deep_diligence_k=2,
             min_evidence_completeness=60.0,
+            enable_cross_provider_check=False,
         ),
         api_get_fn=fake_get,
         fetch_many_fn=fake_fetch,
