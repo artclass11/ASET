@@ -10,6 +10,7 @@ The SignalDesk MCP adds read-only tools for large-universe equity research:
 
 - research_director: end-to-end orchestrated read-only research run with batching, de-duplication, source reconciliation, evidence gating and a deep-diligence queue.
 - cross_check_sources: field-level Yahoo Finance vs configured ASET-provider reconciliation with match/close/conflict/unavailable states and verification grades.
+- export_research_dataset: stable `aset_research_workbook.v1` payload containing raw 5-year statement history, verification and provenance for Excel materialization.
 - analyze_stock: single-ticker provider-backed fundamentals.
 - screen_universe: bounded parallel screening across many tickers.
 - compare_stocks: normalized side-by-side comparison.
