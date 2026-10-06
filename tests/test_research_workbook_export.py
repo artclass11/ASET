@@ -1,11 +1,12 @@
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import openpyxl
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
-from export_research_workbook import build_workbook
+from export_research_workbook import build_workbook  # noqa: E402
 
 
 def sample_payload():
