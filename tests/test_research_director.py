@@ -7,7 +7,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps" / "live-signaldesk"))
 
-from research_agent import ResearchDirector, ResearchAgentConfig  # noqa: E402
+from research_agent import ResearchAgentConfig, ResearchDirector  # noqa: E402
 
 
 def row(symbol: str, score_input: float, completeness: float) -> dict:
