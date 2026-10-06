@@ -178,7 +178,8 @@ def build_workbook(payload: dict[str, Any], output_path: str | Path) -> Path:
             rank.cell(row_no, col, value)
         rank.cell(row_no, 7).number_format = '#,##0.0;[Red](#,##0.0);-'
         rank.cell(row_no, 8).number_format = '0.0;[Red](0.0);-'
-        for col in (10, 11, 12):
+        rank.cell(row_no, 10).number_format = '0.0;[Red](0.0);-'
+        for col in (11, 12, 13):
             rank.cell(row_no, col).number_format = '0.0%;[Red](0.0%);-'
         for col in (13, 14, 15):
             rank.cell(row_no, col).number_format = '0.0x;[Red](0.0x);-'
@@ -344,7 +345,7 @@ def build_workbook(payload: dict[str, Any], output_path: str | Path) -> Path:
     _widths(src, {1:44,2:12,3:28,4:24,5:24,6:44,7:24,8:28,9:14,10:22,11:12,12:30,13:14})
 
     quality = wb.create_sheet("Data_Quality")
-    qheaders = ["Ticker", "Issuer", "Evidence %", "Verification Grade", "Verification Status", "Risk Flags", "Data Gaps", "Research Status"]
+    qheaders = ["Ticker", "Issuer", "Evidence Score (%)", "Verification Grade", "Verification Status", "Risk Flags", "Data Gaps", "Research Status"]
     _style_title(quality, "DATA QUALITY", "Completeness is separate from attractiveness", len(qheaders))
     for col, name in enumerate(qheaders, 1):
         quality.cell(4, col, name)
@@ -361,7 +362,7 @@ def build_workbook(payload: dict[str, Any], output_path: str | Path) -> Path:
         ]
         for col, value in enumerate(values, 1):
             quality.cell(row_no, col, value)
-        quality.cell(row_no, 3).number_format = '0.0%;[Red](0.0%);-'
+        quality.cell(row_no, 3).number_format = '0.0;[Red](0.0);-'
     q_end = max(5, 4 + len(shortlist))
     _style_body(quality, 5, q_end, len(qheaders))
     if shortlist:
