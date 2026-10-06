@@ -9,6 +9,7 @@ on:
       - "apps/live-signaldesk/agent_engine.py"
       - "apps/live-signaldesk/research_agent.py"
       - "apps/live-signaldesk/source_reconciliation.py"
+      - "tools/**"
       - "apps/live-signaldesk/mcp_server.py"
       - "pyproject.toml"
       - ".github/workflows/ci.yml"
@@ -42,13 +43,13 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install -e ".[dev]"
       - name: Compile
-        run: python -m compileall stock_analyzer tests agents/research-director apps/live-signaldesk/agent_engine.py apps/live-signaldesk/research_agent.py apps/live-signaldesk/source_reconciliation.py
+        run: python -m compileall stock_analyzer tests agents/research-director apps/live-signaldesk/agent_engine.py apps/live-signaldesk/research_agent.py apps/live-signaldesk/source_reconciliation.py tools
       - name: Tests
         run: python -m pytest -q tests
       - name: Lint
-        run: ruff check stock_analyzer tests agents/research-director apps/live-signaldesk/agent_engine.py apps/live-signaldesk/source_reconciliation.py
+        run: ruff check stock_analyzer tests agents/research-director apps/live-signaldesk/agent_engine.py apps/live-signaldesk/source_reconciliation.py tools
       - name: Format check
-        run: ruff format --check stock_analyzer tests agents/research-director apps/live-signaldesk/agent_engine.py apps/live-signaldesk/research_agent.py apps/live-signaldesk/source_reconciliation.py
+        run: ruff format --check stock_analyzer tests agents/research-director apps/live-signaldesk/agent_engine.py apps/live-signaldesk/research_agent.py apps/live-signaldesk/source_reconciliation.py tools
       - name: Type check
         run: mypy stock_analyzer tests
       - name: Security scan
