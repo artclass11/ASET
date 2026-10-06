@@ -14,10 +14,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from source_reconciliation import reconcile_many
+
 BASE_URL = "https://www.alphavantage.co/query"
 API_KEY = os.getenv("ALPHAVANTAGE_API_KEY", "").strip()
 TIMEOUT = float(os.getenv("ALPHAVANTAGE_TIMEOUT_SECONDS", "15"))
 CACHE_TTL = int(os.getenv("SIGNALDESK_CACHE_TTL_SECONDS", "60"))
+PROVIDER_CONCURRENCY = max(1, min(int(os.getenv("SIGNALDESK_PROVIDER_CONCURRENCY", "3")), 8))
+PROVIDER_RETRIES = max(0, min(int(os.getenv("SIGNALDESK_PROVIDER_RETRIES", "2")), 4))
+PROVIDER_RETRY_BASE_SECONDS = max(0.25, min(float(os.getenv("SIGNALDESK_PROVIDER_RETRY_BASE_SECONDS", "1.0")), 10.0))
 SYMBOL_RE = re.compile(r"^[A-Z0-9.:-]{1,15}$")
 DEMO_SYMBOL = "IBM"
 BASE_DIR = Path(__file__).resolve().parent
@@ -40,6 +45,7 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 cache: dict[str, tuple[float, dict[str, Any]]] = {}
 lock = asyncio.Lock()
+provider_lock = asyncio.Semaphore(PROVIDER_CONCURRENCY)
 
 
 def now() -> str:
@@ -102,25 +108,38 @@ async def av(
     if entitlement:
         params["entitlement"] = entitlement
 
-    try:
-        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-            response = await client.get(BASE_URL, params=params)
-            response.raise_for_status()
-            payload = response.json()
-    except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"Alpha Vantage network error: {exc}") from exc
+    async with provider_lock:
+        for attempt in range(PROVIDER_RETRIES + 1):
+            try:
+                async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+                    response = await client.get(BASE_URL, params=params)
+                    response.raise_for_status()
+                    payload = response.json()
+            except httpx.HTTPError as exc:
+                if attempt >= PROVIDER_RETRIES:
+                    raise HTTPException(status_code=502, detail=f"Alpha Vantage network error: {exc}") from exc
+                await asyncio.sleep(PROVIDER_RETRY_BASE_SECONDS * (2**attempt))
+                continue
 
-    error = provider_error(payload)
-    if error:
-        raise HTTPException(status_code=502, detail=f"Alpha Vantage: {error}")
+            error = provider_error(payload)
+            if error:
+                retryable = any(token in error.lower() for token in ("rate", "limit", "frequency", "too many"))
+                if retryable and attempt < PROVIDER_RETRIES:
+                    await asyncio.sleep(PROVIDER_RETRY_BASE_SECONDS * (2**attempt))
+                    continue
+                raise HTTPException(status_code=502, detail=f"Alpha Vantage: {error}")
 
-    return payload, {
-        "provider": "Alpha Vantage",
-        "function": function,
-        "fetched_at": now(),
-        "mode": "demo-preview" if demo else "api-key",
-        "freshness": freshness(entitlement),
-    }
+            return payload, {
+                "provider": "Alpha Vantage",
+                "function": function,
+                "fetched_at": now(),
+                "mode": "demo-preview" if demo else "api-key",
+                "freshness": freshness(entitlement),
+                "provider_concurrency": PROVIDER_CONCURRENCY,
+                "retries_allowed": PROVIDER_RETRIES,
+            }
+
+    raise HTTPException(status_code=502, detail="Alpha Vantage provider request failed")
 
 
 async def build_research(symbol: str, entitlement: str | None) -> dict[str, Any]:
@@ -159,17 +178,46 @@ async def build_research(symbol: str, entitlement: str | None) -> dict[str, Any]
         }
         for row in annual(inc)
     ]
-    history = [row for row in history if row["net_income"] is not None][:5]
-    latest_income = history[0]["net_income"] if history else None
-    prior_income = history[1]["net_income"] if len(history) > 1 else None
+    history = [row for row in history if row["fiscal_date"]][:5]
+
+    balance_history = []
+    for row in annual(bal)[:5]:
+        balance_history.append(
+            {
+                "fiscal_date": row.get("fiscalDateEnding"),
+                **{
+                    key: number(value) if number(value) is not None else value
+                    for key, value in row.items()
+                    if key != "fiscalDateEnding"
+                },
+            }
+        )
+
+    cash_flow_raw = await av("CASH_FLOW", symbol, None, True)
+    cash_flow_payload, cash_flow_meta = cash_flow_raw
+    cash_flow_history = []
+    for row in annual(cash_flow_payload)[:5]:
+        cash_flow_history.append(
+            {
+                "fiscal_date": row.get("fiscalDateEnding"),
+                **{
+                    key: number(value) if number(value) is not None else value
+                    for key, value in row.items()
+                    if key != "fiscalDateEnding"
+                },
+            }
+        )
+    income_rows = [row for row in history if row["net_income"] is not None]
+    latest_income = income_rows[0]["net_income"] if income_rows else None
+    prior_income = income_rows[1]["net_income"] if len(income_rows) > 1 else None
     income_growth = (
         latest_income / prior_income - 1
         if latest_income is not None and prior_income not in (None, 0)
         else None
     )
     average_income = (
-        sum(row["net_income"] for row in history) / len(history)
-        if history
+        sum(row["net_income"] for row in income_rows) / len(income_rows)
+        if income_rows
         else None
     )
 
@@ -241,16 +289,21 @@ async def build_research(symbol: str, entitlement: str | None) -> dict[str, Any]
             "market_cap_to_income": cap_income,
             "pe_ratio": number(o.get("PERatio")),
             "eps": number(o.get("EPS")),
+            "operating_cash_flow": latest(cash_flow_payload, "operatingCashflow", "cashflowFromContinuingOperatingActivities"),
+            "capital_expenditures": latest(cash_flow_payload, "capitalExpenditures"),
+            "free_cash_flow": latest(cash_flow_payload, "freeCashFlow"),
         },
         "income_history": history,
+        "balance_sheet_history": balance_history,
+        "cash_flow_history": cash_flow_history,
         "flags": flags,
-        "sources": [qm, om, im, bm],
+        "sources": [qm, om, im, bm, cash_flow_meta],
         "meta": {
             "provider": "Alpha Vantage",
             "fetched_at": now(),
             "freshness": freshness(entitlement),
             "cache": "miss",
-            "demo_preview": any(x["mode"] == "demo-preview" for x in [qm, om, im, bm]),
+            "demo_preview": any(x["mode"] == "demo-preview" for x in [qm, om, im, bm, cash_flow_meta]),
         },
     }
 
@@ -267,6 +320,24 @@ async def home() -> FileResponse:
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "healthy", "provider": "Alpha Vantage", "time": now()}
+
+
+@app.get("/api/v1/research/{symbol}/verification")
+async def research_verification(
+    symbol: str,
+    entitlement: str | None = Query(default=None, pattern="^(realtime|delayed)?$"),
+) -> dict[str, Any]:
+    """Cross-check ASET/Alpha Vantage research data against Yahoo Finance."""
+    normalized = symbol.strip().upper()
+    if not SYMBOL_RE.fullmatch(normalized):
+        raise HTTPException(status_code=400, detail="Invalid ticker symbol.")
+    primary = await build_research(normalized, entitlement)
+    checks = await reconcile_many([primary], concurrency=1)
+    return checks[0] if checks else {
+        "symbol": normalized,
+        "verification": {"status": "secondary_unavailable", "grade": "C"},
+        "field_checks": {},
+    }
 
 
 @app.get("/api/v1/config")

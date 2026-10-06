@@ -8,6 +8,9 @@ The repository contains two complementary MCP surfaces. The core ASET MCP expose
 
 The SignalDesk MCP adds read-only tools for large-universe equity research:
 
+- research_director: end-to-end orchestrated read-only research run with batching, de-duplication, source reconciliation, evidence gating and a deep-diligence queue.
+- cross_check_sources: field-level Yahoo Finance vs configured ASET-provider reconciliation with match/close/conflict/unavailable states and verification grades.
+- export_research_dataset: stable `aset_research_workbook.v1` payload containing raw 5-year statement history, verification and provenance for Excel materialization.
 - analyze_stock: single-ticker provider-backed fundamentals.
 - screen_universe: bounded parallel screening across many tickers.
 - compare_stocks: normalized side-by-side comparison.
@@ -15,7 +18,7 @@ The SignalDesk MCP adds read-only tools for large-universe equity research:
 - check_signaldesk: service health.
 - get_signaldesk_config: non-secret provider/configuration metadata.
 
-Use the host prompts in `agents/multibagger/prompts/` to run the same workflow in ChatGPT, Claude and Manus. The agent should screen first, compare second, then independently verify the strongest candidates with primary sources. A screening score is not a return forecast.
+Use the host prompts in `agents/multibagger/prompts/` and `agents/research-director/prompts/` to run the workflow in ChatGPT, Claude and Manus. Research Director handles the orchestration and cross-provider checks; the host still independently verifies material business claims with primary sources. A screening score is not a return forecast.
 
 The server is intentionally read-only. It has no trading, brokerage, payment, filesystem, or arbitrary code-execution tool.
 

@@ -8,6 +8,8 @@ on:
     paths:
       - "apps/live-signaldesk/mcp_server.py"
       - "apps/live-signaldesk/agent_engine.py"
+      - "apps/live-signaldesk/research_agent.py"
+      - "apps/live-signaldesk/source_reconciliation.py"
       - "apps/live-signaldesk/test_agent_engine.py"
       - "apps/live-signaldesk/requirements-mcp.txt"
       - "integrations/**"
@@ -17,6 +19,7 @@ on:
     paths:
       - "apps/live-signaldesk/mcp_server.py"
       - "apps/live-signaldesk/agent_engine.py"
+      - "apps/live-signaldesk/research_agent.py"
       - "apps/live-signaldesk/test_agent_engine.py"
       - "apps/live-signaldesk/requirements-mcp.txt"
       - "integrations/**"
@@ -37,7 +40,7 @@ jobs:
       - name: Install MCP runtime
         run: pip install -r apps/live-signaldesk/requirements-mcp.txt
       - name: Compile
-        run: python -m compileall apps/live-signaldesk/mcp_server.py apps/live-signaldesk/agent_engine.py integrations/claude-mcpb/server/main.py
+        run: python -m compileall apps/live-signaldesk/mcp_server.py apps/live-signaldesk/agent_engine.py apps/live-signaldesk/research_agent.py apps/live-signaldesk/source_reconciliation.py integrations/claude-mcpb/server/main.py
       - name: Import
         working-directory: apps/live-signaldesk
         run: python -c "import mcp_server; print(mcp_server.SERVER_NAME)"
@@ -51,4 +54,8 @@ jobs:
           grep -q '  - chatgpt' agents/multibagger/manifest.yaml
           grep -q '  - claude' agents/multibagger/manifest.yaml
           grep -q '  - manus' agents/multibagger/manifest.yaml
+          grep -q 'name: aset-research-director' agents/research-director/manifest.yaml
+          grep -q '  - research_director' agents/research-director/manifest.yaml
+          grep -q '  - cross_check_sources' agents/research-director/manifest.yaml
+          grep -q '  - export_research_dataset' agents/research-director/manifest.yaml
           echo "Agent manifest smoke test passed"

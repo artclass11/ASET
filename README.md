@@ -30,13 +30,19 @@ It uses Alpha Vantage on the server, keeps the API key out of the browser, shows
 
 The open core includes CSV validation, net margin, income growth, average supplied net income, debt/cash, market-cap-to-income proxy, flags and JSON/Markdown output.
 
+### ASET Demo
+
+See ASET in action:
+
+▶️ **[Watch the ASET demo on YouTube](https://youtu.be/7tgh1bEgkyY?si=LVeor89ZwBtfivGH)**
+
 ### Windows desktop
 
 [ASET SignalDesk for Windows](apps/windows-signaldesk/) is a Tauri desktop client for the live SignalDesk API. It packages as both an NSIS setup executable and MSI through GitHub Actions and keeps provider credentials on the API server.
 
 ### AI chat connectors
 
-ASET is also open-source and **MCP-native**. [AI Connectors](integrations/ai-connectors/) lets ChatGPT, Claude and Manus call the same read-only SignalDesk research tools from chat. Claude Desktop also has an [MCP Bundle source](integrations/claude-mcpb/) for one-click local installation.
+ASET is also open-source and **MCP-native**. [AI Connectors](integrations/ai-connectors/) lets ChatGPT, Claude and Manus call the same read-only SignalDesk research tools from chat. The new [Research Director agent](agents/research-director/) orchestrates the full screening → comparison → evidence-gate → deep-diligence workflow. Claude Desktop also has an [MCP Bundle source](integrations/claude-mcpb/) for one-click local installation.
 
 Commercial Pro can be licensed separately for additional live providers, automated refresh, PDF/HTML reporting, saved workspaces, API/team deployment, custom integrations and enterprise support.
 
@@ -99,6 +105,6 @@ MIT. See [LICENSE](LICENSE). Third-party dependencies keep their own licenses.
 
 The swarm is designed to screen large universes in batches, compare the strongest companies on normalized fields, separate quantitative signals from qualitative judgment, force primary-source diligence, and run both bull-case and adversarial-skeptic reviews.
 
-MCP batch tools: analyze_stock, screen_universe, compare_stocks, multibagger_radar.
+MCP research tools: research_director, analyze_stock, screen_universe, compare_stocks, multibagger_radar.
 
 The deterministic score is a research-priority funnel only. It is not a guaranteed-return forecast or an intrinsic-value model.

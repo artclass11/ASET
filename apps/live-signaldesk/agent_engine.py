@@ -126,6 +126,16 @@ def score_candidate(row: dict[str, Any]) -> dict[str, Any]:
     cash = _number(fundamentals.get("cash"))
     market_cap = _number(fundamentals.get("market_cap"))
 
+    provenance = {
+        "provider": row.get("provider"),
+        "source": row.get("source"),
+        "fetched_at": row.get("fetched_at"),
+        "freshness": row.get("freshness"),
+        "quality": row.get("quality"),
+        "source_metadata": row.get("source_metadata"),
+    }
+    provenance = {key: value for key, value in provenance.items() if value is not None}
+
     growth_parts = [
         x for x in (
             _growth_score(history["revenue_cagr"]),
@@ -221,11 +231,15 @@ def score_candidate(row: dict[str, Any]) -> dict[str, Any]:
             "evidence_completeness": round(evidence_score, 2),
         },
         "risk_flags": risks,
+        "provenance": provenance,
         "why_it_surfaced": (
             "High screening score driven by the strongest available mix of "
             "multi-year growth, profitability, balance-sheet resilience and valuation signals."
             if composite >= 60
-            else "Quantitative signals surfaced the company, but the evidence is not strong enough for immediate deep research."
+            else (
+                "Quantitative signals surfaced the company, but the evidence is not strong enough "
+                "for immediate deep research."
+            )
         ),
         "must_verify": [
             "durable competitive advantage and reinvestment runway",
@@ -237,7 +251,10 @@ def score_candidate(row: dict[str, Any]) -> dict[str, Any]:
             "dated catalysts that can change estimates rather than only a narrative theme",
         ],
         "status": "research candidate" if composite >= 60 else "screen flag",
-        "disclaimer": "Deterministic screening signal only; not a forecast, recommendation, or guarantee of multi-bagger returns.",
+        "disclaimer": (
+            "Deterministic screening signal only; not a forecast, recommendation, "
+            "or guarantee of multi-bagger returns."
+        ),
     }
 
 

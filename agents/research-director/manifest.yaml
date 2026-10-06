@@ -1,0 +1,42 @@
+name: aset-research-director
+version: 1.0
+purpose: >
+  Orchestrate provider-backed public-equity screening into a traceable
+  research queue without fabricating missing data or executing trades.
+hosts:
+  - chatgpt
+  - claude
+  - manus
+transport: MCP
+core_tools:
+  - research_director
+  - cross_check_sources
+  - export_research_dataset
+  - check_signaldesk
+  - get_signaldesk_config
+  - screen_universe
+  - compare_stocks
+  - multibagger_radar
+  - analyze_stock
+workflow:
+  - preflight
+  - normalize_universe
+  - partition
+  - parallel_quant_screen
+  - merge_and_deduplicate
+  - normalized_compare
+  - source_reconciliation
+  - evidence_gate
+  - deep_diligence_queue
+limits:
+  default_batch_size: 250
+  max_symbols: 1000
+  default_top_k: 20
+  default_deep_diligence_k: 10
+policy:
+  missing_data: never_impute
+  primary_sources: required_for_material_business_claims
+  cross_provider_check: yahoo_finance_vs_configured_aset_provider
+  conflict_policy: surface_conflict_never_silently_choose
+  execution: disabled
+  score_interpretation: research_priority_only

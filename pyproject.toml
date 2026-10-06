@@ -65,7 +65,7 @@ warn_return_any = true
 warn_unused_configs = true
 check_untyped_defs = true
 ignore_missing_imports = true
-exclude = "(main|astra_model_setup|codex_harness|huggingface_integration)\.py$"
+exclude = '(main|astra_model_setup|codex_harness|huggingface_integration)\.py$'
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
