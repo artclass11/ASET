@@ -271,6 +271,39 @@ async def cross_check_sources(symbols: list[str], entitlement: str = "") -> dict
 
 
 @mcp.tool(
+    title="Export ASET research dataset",
+    description=(
+        "Return a workbook-ready ASET research dataset for Excel materialization. Includes raw provider "
+        "records, five-year income, balance-sheet and cash-flow history, comparison, verification and provenance."
+    ),
+    annotations=ToolAnnotations(read_only_hint=True, idempotent_hint=True),
+)
+async def export_research_dataset(
+    symbols: list[str],
+    top_k: int = 99,
+    deep_diligence_k: int = 10,
+    entitlement: str = "",
+) -> dict[str, Any]:
+    """Return the stable aset_research_workbook.v1 export contract."""
+    clean = normalize_symbols(symbols)
+    top_k = max(1, min(int(top_k), 100))
+    deep_diligence_k = max(1, min(int(deep_diligence_k), top_k))
+    result = await ResearchDirector().run(
+        clean,
+        top_k=top_k,
+        deep_diligence_k=deep_diligence_k,
+        entitlement=entitlement,
+        objective="Build a source-first global equity research workbook",
+    )
+    return result.get("export_dataset") | {
+        "run_id": result.get("run_id"),
+        "verification_summary": result.get("verification_summary"),
+        "data_gaps": result.get("data_gaps"),
+        "failures": result.get("failures"),
+    }
+
+
+@mcp.tool(
     title="Run ASET Research Director",
     description=(
         "Orchestrate an end-to-end read-only equity research run across a ticker universe. "
