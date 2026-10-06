@@ -236,7 +236,10 @@ def score_candidate(row: dict[str, Any]) -> dict[str, Any]:
             "High screening score driven by the strongest available mix of "
             "multi-year growth, profitability, balance-sheet resilience and valuation signals."
             if composite >= 60
-            else "Quantitative signals surfaced the company, but the evidence is not strong enough for immediate deep research."
+            else (
+                "Quantitative signals surfaced the company, but the evidence is not strong enough "
+                "for immediate deep research."
+            )
         ),
         "must_verify": [
             "durable competitive advantage and reinvestment runway",
@@ -248,7 +251,10 @@ def score_candidate(row: dict[str, Any]) -> dict[str, Any]:
             "dated catalysts that can change estimates rather than only a narrative theme",
         ],
         "status": "research candidate" if composite >= 60 else "screen flag",
-        "disclaimer": "Deterministic screening signal only; not a forecast, recommendation, or guarantee of multi-bagger returns.",
+        "disclaimer": (
+            "Deterministic screening signal only; not a forecast, recommendation, "
+            "or guarantee of multi-bagger returns."
+        ),
     }
 
 
