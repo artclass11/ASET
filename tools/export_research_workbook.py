@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from openpyxl import Workbook
-from openpyxl.worksheet.table import Table
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.table import Table
 
 BLACK = "0B0B0D"
 PANEL = "17171C"
@@ -155,7 +155,12 @@ def build_workbook(payload: dict[str, Any], output_path: str | Path) -> Path:
         "Net Margin", "Debt / Cash", "P/E", "Verification Grade", "Verification Status",
         "Primary Source", "Risk Flags", "Research Status",
     ]
-    _style_title(rank, "RANKED SCREEN", "Research-priority ranking with separate evidence and verification", len(headers))
+    _style_title(
+        rank,
+        "RANKED SCREEN",
+        "Research-priority ranking with separate evidence and verification",
+        len(headers),
+    )
     for col, name in enumerate(headers, 1):
         rank.cell(4, col, name)
     _style_header(rank, 4, len(headers))
@@ -188,7 +193,13 @@ def build_workbook(payload: dict[str, Any], output_path: str | Path) -> Path:
         _table(rank, f"A4:T{rank_end}", "RankedScreenTable")
     rank.freeze_panes = "A5"
     rank.auto_filter.ref = f"A4:T{rank_end}"
-    _widths(rank, {1:8,2:12,3:28,4:14,5:12,6:18,7:16,8:10,9:24,10:12,11:16,12:18,13:12,14:12,15:10,16:18,17:24,18:28,19:44,20:18})
+    _widths(
+        rank,
+        {
+            1: 8, 2: 12, 3: 28, 4: 14, 5: 12, 6: 18, 7: 16, 8: 10, 9: 24, 10: 12,
+            11: 16, 12: 18, 13: 12, 14: 12, 15: 10, 16: 18, 17: 24, 18: 28, 19: 44, 20: 18,
+        },
+    )
 
     fund = wb.create_sheet("Fundamentals")
     fheaders = [
@@ -227,7 +238,14 @@ def build_workbook(payload: dict[str, Any], output_path: str | Path) -> Path:
     if records:
         _table(fund, f"A4:Y{fund_end}", "FundamentalsTable")
     fund.freeze_panes = "A5"
-    _widths(fund, {1:12,2:28,3:14,4:12,5:18,6:24,7:10,8:28,9:15,10:15,11:19,12:12,13:13,14:18,15:20,16:16,17:15,18:15,19:12,20:17,21:22,22:10,23:10,24:24,25:24})
+    _widths(
+        fund,
+        {
+            1: 12, 2: 28, 3: 14, 4: 12, 5: 18, 6: 24, 7: 10, 8: 28, 9: 15, 10: 15,
+            11: 19, 12: 12, 13: 13, 14: 18, 15: 20, 16: 16, 17: 15, 18: 15, 19: 12,
+            20: 17, 21: 22, 22: 10, 23: 10, 24: 24, 25: 24,
+        },
+    )
 
     income = wb.create_sheet("Income_5Y")
     iheaders = [
@@ -236,7 +254,12 @@ def build_workbook(payload: dict[str, Any], output_path: str | Path) -> Path:
         "Net Income FY1", "Net Income FY2", "Net Income FY3", "Net Income FY4", "Net Income FY5",
         "Revenue CAGR 5Y", "Net Income CAGR 5Y", "Average Net Income 5Y", "Observation Count", "Source",
     ]
-    _style_title(income, "INCOME / 5-YEAR", "Five annual observations plus formula-derived metrics", len(iheaders))
+    _style_title(
+        income,
+        "INCOME / 5-YEAR",
+        "Five annual observations plus formula-derived metrics",
+        len(iheaders),
+    )
     for col, name in enumerate(iheaders, 1):
         income.cell(4, col, name)
     _style_header(income, 4, len(iheaders))
