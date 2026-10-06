@@ -458,3 +458,128 @@ Return a compact audit summary:
 - known limitations.
 
 Do not present the ranking as a forecast or investment recommendation.
+
+## 27. Adversarial regression tests
+
+Before declaring a run valid, mentally or programmatically test the ranking pipeline against these cases.
+
+### Case A — Constant profit
+Five annual profits are 100, 100, 100, 100, 100.
+Expected:
+- average = 100;
+- completeness = 5/5;
+- eligible = yes.
+
+### Case B — Negative year
+Five annual profits are 100, 90, 80, 70, -50.
+Expected:
+- average = 58;
+- the negative year remains negative;
+- eligible = yes if otherwise valid.
+
+### Case C — Missing year
+Only four valid annual observations exist.
+Expected:
+- completeness = 4/5;
+- primary ranking eligibility = no;
+- raw observations remain exported.
+
+### Case D — Partial current year
+A current-year nine-month figure is available but the annual filing is not.
+Expected:
+- current partial year is excluded;
+- prior completed fiscal year remains the latest eligible period.
+
+### Case E — Currency mismatch
+Issuer A reports USD; issuer B reports JPY.
+Expected:
+- A uses USD directly;
+- B requires documented historical FX conversion;
+- without defensible FX, B remains in raw coverage but is not eligible for verified global USD ranking.
+
+### Case F — Duplicate ADR
+An ordinary share and ADR represent the same issuer.
+Expected:
+- issuer counted once in company ranking;
+- security mappings retained;
+- canonical-listing rule recorded.
+
+### Case G — Financial institution
+A bank has debt metrics for which net debt/EBITDA is economically meaningless.
+Expected:
+- leverage metric marked N/M;
+- company can still rank on five-year net income;
+- low-debt screening uses a sector-appropriate rule.
+
+### Case H — Provider conflict
+Provider A reports net income 10.0; Provider B reports 12.0.
+Expected:
+- both observations retained;
+- conflict status recorded;
+- no silent winner;
+- affected ranking marked appropriately until adjudicated.
+
+### Case I — One-off gain
+A company has an exceptional asset-sale gain in one year.
+Expected:
+- reported income remains in the primary five-year ranking;
+- one-off flag is visible;
+- any adjusted-profit view is separate.
+
+### Case J — Batch bias
+A symbol has lower five-year average net income but a higher multifactor screen score than another company.
+Expected:
+- profitability ranking still sorts strictly by five-year average net income;
+- batch-local score cannot change the final profitability rank.
+
+### Case K — Provider failure
+A provider request fails for part of the universe.
+Expected:
+- failed symbols are disclosed;
+- no synthetic values are inserted;
+- final status is PARTIAL unless full ranking coverage remains demonstrably complete.
+
+### Case L — Unit mismatch
+One source reports 2,500 million and another reports 2.5 billion.
+Expected:
+- units are normalized explicitly;
+- normalized values agree at 2.5 billion;
+- original units remain visible.
+
+### Case M — Restatement
+The same fiscal year changes in a later authoritative filing.
+Expected:
+- restated value is clearly identified;
+- original/restated lineage is preserved;
+- ranking uses the declared version consistently.
+
+### Case N — Invalid CAGR
+Starting net income is zero or negative.
+Expected:
+- net-income CAGR is blank or N/M with a reason;
+- the average-profit ranking remains calculable.
+
+### Case O — Excel parity
+Take a small fixture dataset and independently calculate the ranking in code and Excel formulas.
+Expected:
+- rank order and average values match exactly;
+- no #VALUE!, #DIV/0!, broken references, or hidden hard-coded ranking results.
+
+## 28. Anti-hallucination rule
+
+When a requested fact cannot be obtained or verified, the correct answer is an explicit gap.
+
+Never:
+- invent a company;
+- invent a ticker;
+- invent an annual figure;
+- invent an FX rate;
+- invent a missing fiscal year;
+- infer a source value from a chart without labeling it;
+- convert provider-only data into "verified" status;
+- claim worldwide coverage from a regional universe;
+- claim top 1000 when fewer than 1000 eligible companies were actually analyzed;
+- claim a workbook is complete when required sheets or records are missing.
+
+Accuracy and traceability take priority over filling cells.
+
