@@ -20,6 +20,9 @@ BASE_URL = "https://www.alphavantage.co/query"
 API_KEY = os.getenv("ALPHAVANTAGE_API_KEY", "").strip()
 TIMEOUT = float(os.getenv("ALPHAVANTAGE_TIMEOUT_SECONDS", "15"))
 CACHE_TTL = int(os.getenv("SIGNALDESK_CACHE_TTL_SECONDS", "60"))
+PROVIDER_CONCURRENCY = max(1, min(int(os.getenv("SIGNALDESK_PROVIDER_CONCURRENCY", "3")), 8))
+PROVIDER_RETRIES = max(0, min(int(os.getenv("SIGNALDESK_PROVIDER_RETRIES", "2")), 4))
+PROVIDER_RETRY_BASE_SECONDS = max(0.25, min(float(os.getenv("SIGNALDESK_PROVIDER_RETRY_BASE_SECONDS", "1.0")), 10.0))
 SYMBOL_RE = re.compile(r"^[A-Z0-9.:-]{1,15}$")
 DEMO_SYMBOL = "IBM"
 BASE_DIR = Path(__file__).resolve().parent
@@ -42,6 +45,7 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 cache: dict[str, tuple[float, dict[str, Any]]] = {}
 lock = asyncio.Lock()
+provider_lock = asyncio.Semaphore(PROVIDER_CONCURRENCY)
 
 
 def now() -> str:
@@ -104,25 +108,38 @@ async def av(
     if entitlement:
         params["entitlement"] = entitlement
 
-    try:
-        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-            response = await client.get(BASE_URL, params=params)
-            response.raise_for_status()
-            payload = response.json()
-    except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"Alpha Vantage network error: {exc}") from exc
+    async with provider_lock:
+        for attempt in range(PROVIDER_RETRIES + 1):
+            try:
+                async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+                    response = await client.get(BASE_URL, params=params)
+                    response.raise_for_status()
+                    payload = response.json()
+            except httpx.HTTPError as exc:
+                if attempt >= PROVIDER_RETRIES:
+                    raise HTTPException(status_code=502, detail=f"Alpha Vantage network error: {exc}") from exc
+                await asyncio.sleep(PROVIDER_RETRY_BASE_SECONDS * (2**attempt))
+                continue
 
-    error = provider_error(payload)
-    if error:
-        raise HTTPException(status_code=502, detail=f"Alpha Vantage: {error}")
+            error = provider_error(payload)
+            if error:
+                retryable = any(token in error.lower() for token in ("rate", "limit", "frequency", "too many"))
+                if retryable and attempt < PROVIDER_RETRIES:
+                    await asyncio.sleep(PROVIDER_RETRY_BASE_SECONDS * (2**attempt))
+                    continue
+                raise HTTPException(status_code=502, detail=f"Alpha Vantage: {error}")
 
-    return payload, {
-        "provider": "Alpha Vantage",
-        "function": function,
-        "fetched_at": now(),
-        "mode": "demo-preview" if demo else "api-key",
-        "freshness": freshness(entitlement),
-    }
+            return payload, {
+                "provider": "Alpha Vantage",
+                "function": function,
+                "fetched_at": now(),
+                "mode": "demo-preview" if demo else "api-key",
+                "freshness": freshness(entitlement),
+                "provider_concurrency": PROVIDER_CONCURRENCY,
+                "retries_allowed": PROVIDER_RETRIES,
+            }
+
+    raise HTTPException(status_code=502, detail="Alpha Vantage provider request failed")
 
 
 async def build_research(symbol: str, entitlement: str | None) -> dict[str, Any]:
