@@ -256,6 +256,18 @@ class ResearchDirector:
             "comparison": comparison,
             "source_reconciliation": source_reconciliation,
             "verification_summary": verification_summary,
+            "export_dataset": {
+                "schema_version": "aset_research_workbook.v1",
+                "records": compare_rows[:requested_top_k],
+                "comparison": comparison,
+                "verification": source_reconciliation,
+                "notes": [
+                    "Raw provider fields are preserved for workbook export.",
+                    "Workbook formulas should be used only for derived metrics.",
+                    "Missing values must remain blank; do not replace with zero.",
+                    "Primary filing verification remains a separate evidence layer.",
+                ],
+            },
             "deep_diligence_queue": queue,
             "evidence_rejections": evidence_reject,
             "data_gaps": data_gaps,
