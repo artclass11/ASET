@@ -44,6 +44,16 @@ def payloads():
                 }
             ]
         },
+        "CASH_FLOW": {
+            "annualReports": [
+                {
+                    "fiscalDateEnding": "2025-12-31",
+                    "operatingCashflow": "120000",
+                    "capitalExpenditures": "-30000",
+                    "freeCashFlow": "90000",
+                }
+            ]
+        },
     }
 
 
@@ -70,6 +80,9 @@ async def test_research_calculates_real_shape(monkeypatch):
     assert result["fundamentals"]["cash"] == 100000
     assert result["fundamentals"]["debt_cash"] == pytest.approx(0.5)
     assert len(result["income_history"]) == 3
+    assert len(result["balance_sheet_history"]) == 1
+    assert result["fundamentals"]["free_cash_flow"] == 90000
+    assert len(result["cash_flow_history"]) == 1
 
 
 def test_invalid_symbol_rejected():
