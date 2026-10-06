@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from openpyxl import Workbook
+from openpyxl.worksheet.table import Table
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
@@ -63,8 +64,8 @@ def _style_body(ws, start_row: int, end_row: int, columns: int) -> None:
 
 
 def _table(ws, ref: str, name: str) -> None:
-    table = ws.tables.add(ref, True, name)
-    table.table_style_info = None
+    table = Table(displayName=name, ref=ref)
+    ws.add_table(table)
 
 
 def _widths(ws, widths: dict[int, float]) -> None:
