@@ -11,6 +11,7 @@ transport: MCP
 core_tools:
   - research_director
   - cross_check_sources
+  - export_research_dataset
   - check_signaldesk
   - get_signaldesk_config
   - screen_universe
