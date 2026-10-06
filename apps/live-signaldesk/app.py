@@ -161,17 +161,46 @@ async def build_research(symbol: str, entitlement: str | None) -> dict[str, Any]
         }
         for row in annual(inc)
     ]
-    history = [row for row in history if row["net_income"] is not None][:5]
-    latest_income = history[0]["net_income"] if history else None
-    prior_income = history[1]["net_income"] if len(history) > 1 else None
+    history = [row for row in history if row["fiscal_date"]][:5]
+
+    balance_history = []
+    for row in annual(bal)[:5]:
+        balance_history.append(
+            {
+                "fiscal_date": row.get("fiscalDateEnding"),
+                **{
+                    key: number(value) if number(value) is not None else value
+                    for key, value in row.items()
+                    if key != "fiscalDateEnding"
+                },
+            }
+        )
+
+    cash_flow_raw = await av("CASH_FLOW", symbol, None, True)
+    cash_flow_payload, cash_flow_meta = cash_flow_raw
+    cash_flow_history = []
+    for row in annual(cash_flow_payload)[:5]:
+        cash_flow_history.append(
+            {
+                "fiscal_date": row.get("fiscalDateEnding"),
+                **{
+                    key: number(value) if number(value) is not None else value
+                    for key, value in row.items()
+                    if key != "fiscalDateEnding"
+                },
+            }
+        )
+    income_rows = [row for row in history if row["net_income"] is not None]
+    latest_income = income_rows[0]["net_income"] if income_rows else None
+    prior_income = income_rows[1]["net_income"] if len(income_rows) > 1 else None
     income_growth = (
         latest_income / prior_income - 1
         if latest_income is not None and prior_income not in (None, 0)
         else None
     )
     average_income = (
-        sum(row["net_income"] for row in history) / len(history)
-        if history
+        sum(row["net_income"] for row in income_rows) / len(income_rows)
+        if income_rows
         else None
     )
 
@@ -243,16 +272,21 @@ async def build_research(symbol: str, entitlement: str | None) -> dict[str, Any]
             "market_cap_to_income": cap_income,
             "pe_ratio": number(o.get("PERatio")),
             "eps": number(o.get("EPS")),
+            "operating_cash_flow": latest(cash_flow_payload, "operatingCashflow", "cashflowFromContinuingOperatingActivities"),
+            "capital_expenditures": latest(cash_flow_payload, "capitalExpenditures"),
+            "free_cash_flow": latest(cash_flow_payload, "freeCashFlow"),
         },
         "income_history": history,
+        "balance_sheet_history": balance_history,
+        "cash_flow_history": cash_flow_history,
         "flags": flags,
-        "sources": [qm, om, im, bm],
+        "sources": [qm, om, im, bm, cash_flow_meta],
         "meta": {
             "provider": "Alpha Vantage",
             "fetched_at": now(),
             "freshness": freshness(entitlement),
             "cache": "miss",
-            "demo_preview": any(x["mode"] == "demo-preview" for x in [qm, om, im, bm]),
+            "demo_preview": any(x["mode"] == "demo-preview" for x in [qm, om, im, bm, cash_flow_meta]),
         },
     }
 
